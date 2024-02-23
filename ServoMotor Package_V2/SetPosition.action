@@ -1,0 +1,10 @@
+# Example.action
+
+# Request
+int32 position
+
+# Result
+bool success
+
+# Feedback
+int32 current_position
