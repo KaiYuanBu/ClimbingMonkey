@@ -78,9 +78,9 @@ class IDSServoDriver(can.listener.Listener):
     """Driver class for IDS Servo Driver. Used in Nenkeen electric cylinders."""
 
     # -----------Constants--------------
-    ENCODER_CNT_PER_METRE = 10000000 # Encoder count per metre of extension
+    ENCODER_CNT_PER_METRE = 1000000 # Encoder count per metre of extension
 
-    def __init__(self, bus:can.ThreadSafeBus, can_id:int, message_timeout:float=0.2,
+    def __init__(self, bus:can.ThreadSafeBus, can_id:int, message_timeout:float=8.0,
                  group_id:int=0x00, name="", position_threshold:float=0.001) -> None:
         """Initialize CAN communication with IDS Servo Driver.
 
@@ -348,45 +348,73 @@ class IDSServoDriver(can.listener.Listener):
         # Create and send CAN message to driver
         self.write_request(data, wait)
 
+    def fault_reset(self, wait:bool=False):
+        """Enable movement of the motor (release brake).
+        
+        Args:
+            wait (bool, optional): Wait until message is acknowledge or timeout.
+        """
+        data = [
+            self.group_id, # Driver's group ID
+            FunctionCode.OTO_WRITE_SEND.value, # Function code
+            RegisterAddress.ERROR_RESET.value, # Register 1 (Servo start/stop)
+            0x00, # N/A
+            0x00, # Stop servo
+            0xFF,
+            0x00,
+            0x00,
+        ]
+        # Create and send CAN message to driver
+        self.write_request(data, wait)
+
 def main(args=None):
     """Run when this script is called."""
     # Boom 1 = 71 (0x47)
     # Boom 2 = 72 (0x48)
-    can_id_str = input("Please enter CAN ID: ")
+    # can_id_str = input("Please enter CAN ID: ")
 
     bus = can.ThreadSafeBus(
         # interface='seeedstudio', channel='/dev/ttyUSB0', baudrate=2000000, bitrate=500000
-        interface='seeedstudio', channel='COM6', baudrate=2000000, bitrate=500000
+        interface='seeedstudio', channel='COM7', baudrate=2000000, bitrate=500000
     )
 
     # Initialize drivers
-    d1 = IDSServoDriver(bus, 71, name="Boom 1")
+    d1 = IDSServoDriver(bus, 1, name="Boom 1")
     time.sleep(1)
-    d2 = IDSServoDriver(bus, 72, name="Boom 2")
+    # d2 = IDSServoDriver(bus, 72, name="Boom 2")
+    d1.fault_reset()
     time.sleep(1)
     print("Set positional control mode")
     d1.set_positional_control_mode()
-    d2.set_positional_control_mode()
+    # d2.set_positional_control_mode()
 
     time.sleep(0.5)
 
     print("Extend 0.1m")
-    d1.set_extension(0.1, 8, False)
-    d2.set_extension(0.1, 8, False)
+    d1.set_extension(0, 8, False)
+
+    # Max is around 1.31cm
+    # MAX = 1.3 = ~95cm / Total height of monkey = 245cm
+    # 1.0 = ~70+cm
+    # 0.6 = ~40+cm
+    # 0.8 = ~56cm
+    # MIN = 0.05 = ~5cm
+
+    # d2.set_extension(0.1, 8, False)
     # Wait until both actuators reached target
-    while (d1.is_running or d2.is_running):
+    while (d1.is_running):
         pass
     print("Extension reached... Wait 3 seconds")
     time.sleep(3)
 
-    print("Extend 0m")
-    d1.set_extension(0, 8, False)
-    d2.set_extension(0, 8, False)
-    # Wait until both actuators reached target
-    while (d1.is_running or d2.is_running):
-        pass
-    print("Extension reached... Wait 3 seconds")
-    time.sleep(3)
+    # print("Extend 0m")
+    # d1.set_extension(0, 8, False)
+    # # d2.set_extension(0, 8, False)
+    # # Wait until both actuators reached target
+    # while (d1.is_running):
+    #     pass
+    # print("Extension reached... Wait 3 seconds")
+    # time.sleep(3)
 
 def print_message(msg:can.Message):
     """Print CAN message data.

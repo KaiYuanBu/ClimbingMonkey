@@ -424,11 +424,11 @@ def main(args=None):
 
     bus = can.ThreadSafeBus(
         # interface='seeedstudio', channel='/dev/ttyUSB0', baudrate=2000000, bitrate=500000
-        interface='seeedstudio', channel='COM6', baudrate=2000000, bitrate=500000
+        interface='seeedstudio', channel='COM7', baudrate=2000000, bitrate=500000
     )
 
     # Initialize drivers
-    d1 = IDSServoDriver(bus, 71, name="Boom 1")
+    d1 = IDSServoDriver(bus, 1, name="Boom 1")
     time.sleep(1)
     # d2 = IDSServoDriver(bus, 72, name="Boom 2")
     print("Performing Fault Reset")
@@ -440,7 +440,7 @@ def main(args=None):
 
     time.sleep(0.5)
 
-    print("Extend 0.1m")
+    print("Extend 0.2m")
     d1.set_extension(0.2, 8, False)
     d1.monitor_position()
     # d2.set_extension(0.1, 8, False)
@@ -450,15 +450,15 @@ def main(args=None):
     print("Extension reached... Wait 3 seconds")
     time.sleep(3)
 
-    print("Extend 0m")
-    d1.set_extension(0, 8, False)
-    d1.monitor_position()
-    # d2.set_extension(0, 8, False)
-    # Wait until both actuators reached target
-    while (d1.is_running):
-        pass
-    print("Extension reached... Wait 3 seconds")
-    time.sleep(3)
+    # print("Extend 0m")
+    # d1.set_extension(0, 8, False)
+    # d1.monitor_position()
+    # # d2.set_extension(0, 8, False)
+    # # Wait until both actuators reached target
+    # while (d1.is_running):
+    #     pass
+    # print("Extension reached... Wait 3 seconds")
+    # time.sleep(3)
 
     d1.disable()
 
