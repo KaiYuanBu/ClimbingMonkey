@@ -1,12 +1,5 @@
-# Request
-int32 targetposition
-
+int32 target_position
 ---
-
-
-string resultstuff
-
+bool success
 ---
-
-# Feedback
-int32 currentposition
+int32 current_position

@@ -17,7 +17,7 @@
   <depend>std_msgs</depend>
   <depend>rcl_interfaces</depend>
   <depend>action_msgs</depend>
-  <depend>action_interface</depend>
+  <depend>dmke_interface</depend>
 
   <build_depend>rosidl_default_generators</build_depend>
 
