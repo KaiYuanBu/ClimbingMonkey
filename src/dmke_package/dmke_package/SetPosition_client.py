@@ -111,9 +111,11 @@ class SetPositionActionClient(Node):
         self._get_result_future.add_done_callback(self.get_result_callback)
 
     def get_result_callback(self, future):
-        result = future.result().success
-        self.get_logger().info(f'Result: {result.success}')
-        rclpy.shutdown()
+        try:
+            result = future.result().result
+            self.get_logger().info('Result received: {0}'.format(result.success))
+        except Exception as e:
+            self.get_logger().info('Exception while calling service: %r' % (e,))
 
     def feedback_callback(self, feedback_msg):
         feedback = feedback_msg.feedback

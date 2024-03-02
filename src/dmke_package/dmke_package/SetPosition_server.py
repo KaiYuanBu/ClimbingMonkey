@@ -37,7 +37,7 @@ class SetPositionActionServer(Node):
 
 
     def execute_callback(self, goal_handle):
-        self.get_logger().info('Received goal: Move motor to position %f' % goal_handle.request.target_position)
+        self.get_logger().info('Received goal: Move motor to position %d' % goal_handle.request.target_position)
         
         # Use your motor driver to move the motor
         # Example:
@@ -88,6 +88,7 @@ class SetPositionActionServer(Node):
 
         # Create the result message
         result = SetPosition.Result()
+        
         result.success = success
 
         if result.success:
@@ -96,6 +97,8 @@ class SetPositionActionServer(Node):
         else:
             self.get_logger().info('Motor failed to reach target position')
             goal_handle.abort()
+
+        return result
         
         # # For the sake of example, we'll simulate movement
         
