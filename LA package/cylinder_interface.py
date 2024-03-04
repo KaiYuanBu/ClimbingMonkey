@@ -13,7 +13,7 @@ os2 action send_goal -f /arm/cylinder_2/SetExtension arm_interfaces/action/SetEx
 
 from rclpy.action import ActionServer
 from rclpy.node import Node
-from rcl_interfaces.msg import ParameterDescriptor, SetParametersResult
+from rcl_interfaces.msg import ParameterDescriptor #, SetParametersResult
 
 import time
 import can

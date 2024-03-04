@@ -101,7 +101,7 @@ class IDSServoDriver(can.listener.Listener):
         self.is_message_received = False
         self.msg_received:can.Message = None
         self.is_running = False
-        self.extension:float = -1.0
+        self.extension:float = 0.0
 
         # Setup CAN listener
         can.Notifier(self.bus, [self])
@@ -391,7 +391,7 @@ def main(args=None):
     time.sleep(0.5)
 
     print("Extend 0.1m")
-    d1.set_extension(0, 8, False)
+    d1.set_extension(0.1, 8, False)
 
     # Max is around 1.31cm
     # MAX = 1.3 = ~95cm / Total height of monkey = 245cm
