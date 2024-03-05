@@ -5,7 +5,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import JointState
 from rclpy.qos import QoSProfile
 import getch
-from ZeroErr import ZeroErr
+from DMKEServoDriver2 import DMKEServoDriver2_V1
 
 #####################################
 

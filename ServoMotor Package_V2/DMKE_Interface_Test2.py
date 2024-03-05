@@ -1,16 +1,9 @@
 import canopen
 import time
 from my_monkey.my_monkey.DMKEServoDriver2 import DMKEServoDriver2_V1
-# import csv
-
-# import rclpy
-# from rclpy.node import Node
-# from sensor_msgs.msg import JointState
-# from rclpy.qos import QoSProfile
 
 
-
-def monitor_position(instance, filepath, threshold=5, interval=0.1):
+def monitor_position(instance, filepath, threshold=3, interval=0.05):
     """
     Monitors the position of a servo motor continuously until the change
     in position is less than the specified threshold.
@@ -24,7 +17,7 @@ def monitor_position(instance, filepath, threshold=5, interval=0.1):
     """
 
     prev_pos = instance.read_actual_pos()
-    print(f"Position from Motor's Perspective {prev_pos}")
+    # print(f"Position from Motor's Perspective {prev_pos}")
     error_count = 0  # Initialize error count
 
     while True:
@@ -42,26 +35,29 @@ def monitor_position(instance, filepath, threshold=5, interval=0.1):
 
                 # else:
                 if actual_pos < prev_pos:
-                    sub_pos = abs(int((prev_pos - actual_pos)))
+                    sub_pos = abs((prev_pos - actual_pos))
                     file_pos = read_integer_from_file(filepath) - sub_pos
                     print(f"Actual position: {file_pos}")
-                    save_integer_to_file(file_pos, filepath)
+                    # save_integer_to_file(file_pos, filepath)
 
                 elif actual_pos > prev_pos:
-                    sub_pos = abs(int((prev_pos - actual_pos)))
+                    sub_pos = abs((prev_pos - actual_pos))
                     file_pos = read_integer_from_file(filepath) + sub_pos
                     print(f"Actual position: {file_pos}")
-                    save_integer_to_file(file_pos, filepath)
 
+                save_integer_to_file(file_pos, filepath)
 
                 # Check if position has changed significantly
                 if abs(actual_pos - prev_pos) < threshold:
+                    read_pos = instance.read_actual_pos()
+                    print(read_pos)
                     break
 
                 prev_pos = actual_pos
 
-            # else:
-            #     raise ValueError("Failed to read current position of motor")
+            else:
+                # raise ValueError("Failed to read current position of motor")
+                continue
 
         except canopen.SdoAbortedError as e:
             error_code = e.code
@@ -70,88 +66,56 @@ def monitor_position(instance, filepath, threshold=5, interval=0.1):
 
             if error_count >= 5:
                 raise ValueError("SDO Aborted Error occurred 5 times. Stopping the function.")
+            
+            else:
+                continue
 
-
-# def monitor_position(instance, threshold=3, interval=0.1, file_path='dmke_encoder_pos.txt'):
+# def monitor_position(instance, threshold=3, interval=0.05):
 #     """
 #     Monitors the position of a servo motor continuously until the change
 #     in position is less than the specified threshold.
 
 #     Args:
-#     - instance: The DMKEServoDriver2_V1 object for the servo motor.
+#     - c1: The DMKEServoDriver2_V1 object for the servo motor.
 #     - threshold (optional): The threshold for considering the change in
 #                             position significant. Defaults to 5.
 #     - interval (optional): The time interval (in seconds) between position
 #                            readings. Defaults to 0.2 seconds.
-#     - file_path (optional): The file path to save the motor position.
-#                             Defaults to 'dmke_encoder_pos.txt'.
 #     """
-
-#     prev_pos = check_pos_jic(instance, file_path)
+#     prev_pos = instance.read_actual_pos()
 #     while True:
 #         time.sleep(interval)
-#         actual_pos = check_pos_jic(instance, file_path)
+#         actual_pos = instance.read_actual_pos()
 
 #         if actual_pos is not None and prev_pos is not None:
-#             print(f"Actual position: {actual_pos}, Previous Pos: {prev_pos}")
+#             print(f"Actual position: {actual_pos}")
+#             save_integer_to_file(actual_pos, 'dmke_encoder_pos.txt')
 
 #             # Check if position has changed significantly
 #             if abs(actual_pos - prev_pos) < threshold:
+#                 read_pos = instance.read_actual_pos()
+#                 print(read_pos)
 #                 break
             
-#             # Check if the motor position is 0 (likely due to power loss)
-#             if actual_pos == 0:
-#                 print("Motor Position Reset")
-#                 save_integer_to_file(prev_pos, file_path)
-#                 break
-
 #         prev_pos = actual_pos
 
+        
+# def check_pos(instance, file_path):
+#     data1 = instance.read_actual_pos()
+#     data2 = read_integer_from_file(file_path)
 
-# def check_pos_jic(instance, filepath):
-#     data1 = read_integer_from_file(filepath)
-#     data2 = instance.read_actual_pos()
-#     # real_pos = None
 #     if data1 is not None and data2 is not None:
-
-#         if data2 == 0 and data1 != data2:
-#             print("Power/Connection loss may have occurred during operation")
-#             print("Recalculating real position of the motor.")
-#             # real_pos = data1
-#             print(f"Real Position: {data1}")
+#         if data2 - 5 <= data1 <= data2 + 5:
+#             # save_integer_to_file(data1, 'dmke_encoder_pos.txt')
 #             return data1
-            
-#         elif data1 == data2:
-#             # real_pos = data2
+
+#         elif not (data2 - 5 <= data1 <= data2 + 5):
+#             # save_integer_to_file(data2, 'dmke_encoder_pos.txt')
 #             return data2
-        
-#         else:
-#             return data1
-        
-#     elif data2 is None:
-#         return data1
     
-#     else:
-#         return data1
-    
-    # return None
-        
-def check_pos(instance, file_path):
-    data1 = instance.read_actual_pos()
-    data2 = read_integer_from_file(file_path)
-
-    if data1 is not None and data2 is not None:
-        if data2 - 5 <= data1 <= data2 + 5:
-            # save_integer_to_file(data1, 'dmke_encoder_pos.txt')
-            return data1
-
-        elif not (data2 - 5 <= data1 <= data2 + 5):
-            # save_integer_to_file(data2, 'dmke_encoder_pos.txt')
-            return data2
-    
-    if data1 is None or data2 is None:
-        # save_integer_to_file(data2, 'dmke_encoder_pos.txt')
-        return data2
+#     if data1 is None or data2 is None:
+#         # save_integer_to_file(data2, 'dmke_encoder_pos.txt')
+#         return data2
 
 
 def save_integer_to_file(number, file_path):
@@ -174,20 +138,12 @@ def read_integer_from_file(file_path):
     #         file.write(str(default_value))
     #     return default_value
     
-def real_pos(target_pos, file_path):
+def real_pos(instance, target_pos, file_path):
     starting_pos = read_integer_from_file(file_path)
+    read_pos = instance.read_actual_pos()
     print(f"Current Position: {starting_pos}")
-    real_target = target_pos - starting_pos
+    real_target = read_pos + (target_pos - starting_pos)
     return real_target
-
-# def handle_canopen_error(error_code):
-#     if error_code == 0x05040000:
-#         print("Break away from code")
-#         raise ValueError
-#         # Handle the error as needed
-#     else:
-#         print("Unknown error code:", hex(error_code))
-#         # Handle other error codes
 
 
 def main(args=None):
@@ -202,9 +158,9 @@ def main(args=None):
 
     node_id =  0x02 # I memang dk yet
 
-    count = 0
+    # count = 0
 
-    target_position1 = 800000
+    target_position1 = 500000
     target_position2 = 200000
     zero_position = 0
     target_position3 = -500000
@@ -245,12 +201,12 @@ def main(args=None):
 
         print("Setting Parameters for position control mode")
         c1.set_profile_velocity(2800)
-        c1.set_profile_acceleration(3000)
-        c1.set_profile_deceleration(3000)
+        c1.set_profile_acceleration(2000)
+        c1.set_profile_deceleration(2000)
         time.sleep(2)
 
         # Move to target position 1
-        real_target1 = real_pos(target_position1, 'dmke_encoder_pos.txt')
+        real_target1 = real_pos(c1, target_position1, 'dmke_encoder_pos.txt')
 
         print(f"Setting Target position to {target_position1}")
         
@@ -258,15 +214,15 @@ def main(args=None):
         time.sleep(2)
 
         print(f"Moving to position {target_position1}")
-        print(f"Encoder Counts Left: {real_target1}")
+        # print(f"Encoder Counts Left: {real_target1}")
         c1.start_trigger_absolute()
 
         # real_pos = read_integer_from_file('dmke_encoder_pos.txt')
         # pospos = real_pos + c1.read_actual_pos()
         # save_integer_to_file(pospos, 'dmke_encoder_pos.txt')
         # input = check_pos(c1, 'dmke_encoder_pos.txt')
-        monitor_position(c1, 'dmke_encoder_pos.txt', count)
-        count += 1
+        monitor_position(c1, 'dmke_encoder_pos.txt')
+        # count += 1
 
         time.sleep(2)
         c1.disable
@@ -277,7 +233,7 @@ def main(args=None):
 
         # Move to target position 2
         # X = check_pos(c1, 'dmke_encoder_pos.txt')
-        real_target2 = real_pos(target_position2, 'dmke_encoder_pos.txt')
+        real_target2 = real_pos(c1, target_position2, 'dmke_encoder_pos.txt')
        
         print(f"Setting Target position to {target_position2}")
         
@@ -285,11 +241,11 @@ def main(args=None):
         time.sleep(2)
 
         print(f"Moving to position {target_position2}")
-        print(f"Encoder Counts Left: {real_target2}")
+        # print(f"Encoder Counts Left: {real_target2}")
         c1.start_trigger_absolute()
 
         # input = check_pos(c1, 'dmke_encoder_pos.txt')
-        monitor_position(c1, 'dmke_encoder_pos.txt', count)
+        monitor_position(c1, 'dmke_encoder_pos.txt')
 
         time.sleep(2)
         c1.disable()
@@ -315,17 +271,17 @@ def main(args=None):
 
         c1.enable()
         # Move to zero position    
-        real_target3 = real_pos(zero_position, 'dmke_encoder_pos.txt')
+        real_target3 = real_pos(c1, zero_position, 'dmke_encoder_pos.txt')
     
         print(f"Setting Target position to {zero_position}")
         c1.set_target_location(real_target3)
         time.sleep(2)
 
-        print(f"Moving to position {real_target3}")
+        print(f"Moving to position {zero_position}")
         c1.start_trigger_absolute()
 
         # input = check_pos(c1, 'dmke_encoder_pos.txt')
-        monitor_position(c1, 'dmke_encoder_pos.txt', count)
+        monitor_position(c1, 'dmke_encoder_pos.txt')
 
         time.sleep(2)
         c1.disable()

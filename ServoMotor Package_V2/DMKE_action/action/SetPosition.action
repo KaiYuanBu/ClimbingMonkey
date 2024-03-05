@@ -1,0 +1,10 @@
+# SetPosition.action
+
+# Request
+int32 target_position
+---
+# Result
+bool success
+---
+# Feedback
+int32 current_position
