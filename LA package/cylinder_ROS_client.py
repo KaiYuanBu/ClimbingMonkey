@@ -46,7 +46,7 @@ def main(args=None):
 
     action_client = CylinderClient()
 
-    target_extension = 500000 # Example target position
+    target_extension = 0.5 # Example target extension in meters
     action_client.send_goal(target_extension)
 
     rclpy.spin(action_client)

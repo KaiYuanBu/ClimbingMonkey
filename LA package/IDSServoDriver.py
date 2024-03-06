@@ -367,6 +367,26 @@ class IDSServoDriver(can.listener.Listener):
         # Create and send CAN message to driver
         self.write_request(data, wait)
 
+def save_value_to_file(self, number, file_path):
+    if not isinstance(number, float):
+        raise ValueError("Input must be a float.")
+        # print("Input not integer...Saving as 0")
+    with open(file_path, 'w') as file:
+        file.write(str(number))
+
+def read_value_from_file(self, file_path):
+    # default_value = 0
+    try:
+        with open(file_path, 'r') as file:
+            data = file.read().strip()
+            return float(data)
+    
+    except FileNotFoundError:
+        # If the file does not exist, create it and return 0
+        self.get_logger().warn(f"File {file_path} not found. Creating it with default value 0.")
+        self.save_integer_to_file(0, file_path)
+        return 0
+    
 def main(args=None):
     """Run when this script is called."""
     # Boom 1 = 71 (0x47)
@@ -402,8 +422,34 @@ def main(args=None):
 
     # d2.set_extension(0.1, 8, False)
     # Wait until both actuators reached target
+    prev_ext = float(d1.extension)
     while (d1.is_running):
-        pass
+        time.sleep(0.1)
+            
+        actual_ext = float(d1.extension)
+        print(f"Extension: {actual_ext}")
+        # feedback_msg.current_extension = actual_ext
+
+        if actual_ext < prev_ext:
+            sub_pos = abs((prev_ext - actual_ext))
+            file_pos = read_value_from_file('saved_extension.txt') - sub_pos
+            print(f"Actual extension: {file_pos}")
+            # save_integer_to_file(file_pos, filepath)
+
+        elif actual_ext > prev_ext:
+            sub_pos = abs((prev_ext - actual_ext))
+            file_pos = read_value_from_file('saved_extension.txt') + sub_pos
+            print(f"Actual extension: {file_pos}")
+
+        save_value_to_file(file_pos, 'saved_extension.txt')
+
+        # Check if position has changed significantly
+        if abs(actual_ext - prev_ext) < 0.05:
+            break
+
+        prev_ext = actual_ext
+        
+        # pass
     print("Extension reached... Wait 3 seconds")
     time.sleep(3)
 
