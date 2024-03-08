@@ -20,6 +20,12 @@ find_package(dmke_interface REQUIRED)
 add_executable(dmke_bt_test1 src/dmke_bt_test1.cpp)
 # add_executable(SetPosition_server src/SetPosition_server.py)
 
+# Install
+install(TARGETS dmke_bt_test1
+                # mock_actuator
+  DESTINATION lib/${PROJECT_NAME})
+
+
 set(THIS_PACKAGE_DEPS
     rclcpp
     behaviortree_ros2
@@ -63,6 +69,7 @@ endif()
 ament_export_dependencies(
   behaviortree_ros2
   dmke_interface
+  rclcpp
 )
 
 ament_package()

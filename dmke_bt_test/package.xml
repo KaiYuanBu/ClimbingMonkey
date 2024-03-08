@@ -14,6 +14,8 @@
 
   <depend>behaviortree_ros2</depend>
   <depend>dmke_interface</depend>
+  <depend>rclcpp</depend>
+  <depend>behaviortree_cpp</depend>
 
 
   <export>
