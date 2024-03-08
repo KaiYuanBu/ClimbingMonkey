@@ -387,90 +387,90 @@ def read_value_from_file(self, file_path):
         self.save_integer_to_file(0, file_path)
         return 0
     
-def main(args=None):
-    """Run when this script is called."""
-    # Boom 1 = 71 (0x47)
-    # Boom 2 = 72 (0x48)
-    # can_id_str = input("Please enter CAN ID: ")
+# def main(args=None):
+#     """Run when this script is called."""
+#     # Boom 1 = 71 (0x47)
+#     # Boom 2 = 72 (0x48)
+#     # can_id_str = input("Please enter CAN ID: ")
 
-    bus = can.ThreadSafeBus(
-        # interface='seeedstudio', channel='/dev/ttyUSB0', baudrate=2000000, bitrate=500000
-        interface='seeedstudio', channel='COM7', baudrate=2000000, bitrate=500000
-    )
+#     bus = can.ThreadSafeBus(
+#         # interface='seeedstudio', channel='/dev/ttyUSB0', baudrate=2000000, bitrate=500000
+#         interface='seeedstudio', channel='COM7', baudrate=2000000, bitrate=500000
+#     )
 
-    # Initialize drivers
-    d1 = IDSServoDriver(bus, 1, name="Boom 1")
-    time.sleep(1)
-    # d2 = IDSServoDriver(bus, 72, name="Boom 2")
-    d1.fault_reset()
-    time.sleep(1)
-    print("Set positional control mode")
-    d1.set_positional_control_mode()
-    # d2.set_positional_control_mode()
+#     # Initialize drivers
+#     d1 = IDSServoDriver(bus, 1, name="Boom 1")
+#     time.sleep(1)
+#     # d2 = IDSServoDriver(bus, 72, name="Boom 2")
+#     d1.fault_reset()
+#     time.sleep(1)
+#     print("Set positional control mode")
+#     d1.set_positional_control_mode()
+#     # d2.set_positional_control_mode()
 
-    time.sleep(0.5)
+#     time.sleep(0.5)
 
-    print("Extend 0.1m")
-    d1.set_extension(0.1, 8, False)
+#     print("Extend 0.1m")
+#     d1.set_extension(0.1, 8, False)
 
-    # Max is around 1.31cm
-    # MAX = 1.3 = ~95cm / Total height of monkey = 245cm
-    # 1.0 = ~70+cm
-    # 0.6 = ~40+cm
-    # 0.8 = ~56cm
-    # MIN = 0.05 = ~5cm
+#     # Max is around 1.31cm
+#     # MAX = 1.3 = ~95cm / Total height of monkey = 245cm
+#     # 1.0 = ~70+cm
+#     # 0.6 = ~40+cm
+#     # 0.8 = ~56cm
+#     # MIN = 0.05 = ~5cm
 
-    # d2.set_extension(0.1, 8, False)
-    # Wait until both actuators reached target
-    prev_ext = float(d1.extension)
-    while (d1.is_running):
-        time.sleep(0.1)
+#     # d2.set_extension(0.1, 8, False)
+#     # Wait until both actuators reached target
+#     prev_ext = float(d1.extension)
+#     while (d1.is_running):
+#         time.sleep(0.1)
             
-        actual_ext = float(d1.extension)
-        print(f"Extension: {actual_ext}")
-        # feedback_msg.current_extension = actual_ext
+#         actual_ext = float(d1.extension)
+#         print(f"Extension: {actual_ext}")
+#         # feedback_msg.current_extension = actual_ext
 
-        if actual_ext < prev_ext:
-            sub_pos = abs((prev_ext - actual_ext))
-            file_pos = read_value_from_file('saved_extension.txt') - sub_pos
-            print(f"Actual extension: {file_pos}")
-            # save_integer_to_file(file_pos, filepath)
+#         if actual_ext < prev_ext:
+#             sub_pos = abs((prev_ext - actual_ext))
+#             file_pos = read_value_from_file('saved_extension.txt') - sub_pos
+#             print(f"Actual extension: {file_pos}")
+#             # save_integer_to_file(file_pos, filepath)
 
-        elif actual_ext > prev_ext:
-            sub_pos = abs((prev_ext - actual_ext))
-            file_pos = read_value_from_file('saved_extension.txt') + sub_pos
-            print(f"Actual extension: {file_pos}")
+#         elif actual_ext > prev_ext:
+#             sub_pos = abs((prev_ext - actual_ext))
+#             file_pos = read_value_from_file('saved_extension.txt') + sub_pos
+#             print(f"Actual extension: {file_pos}")
 
-        save_value_to_file(file_pos, 'saved_extension.txt')
+#         save_value_to_file(file_pos, 'saved_extension.txt')
 
-        # Check if position has changed significantly
-        if abs(actual_ext - prev_ext) < 0.05:
-            break
+#         # Check if position has changed significantly
+#         if abs(actual_ext - prev_ext) < 0.05:
+#             break
 
-        prev_ext = actual_ext
+#         prev_ext = actual_ext
         
-        # pass
-    print("Extension reached... Wait 3 seconds")
-    time.sleep(3)
+#         # pass
+#     print("Extension reached... Wait 3 seconds")
+#     time.sleep(3)
 
-    # print("Extend 0m")
-    # d1.set_extension(0, 8, False)
-    # # d2.set_extension(0, 8, False)
-    # # Wait until both actuators reached target
-    # while (d1.is_running):
-    #     pass
-    # print("Extension reached... Wait 3 seconds")
-    # time.sleep(3)
+#     # print("Extend 0m")
+#     # d1.set_extension(0, 8, False)
+#     # # d2.set_extension(0, 8, False)
+#     # # Wait until both actuators reached target
+#     # while (d1.is_running):
+#     #     pass
+#     # print("Extension reached... Wait 3 seconds")
+#     # time.sleep(3)
 
-def print_message(msg:can.Message):
-    """Print CAN message data.
+# def print_message(msg:can.Message):
+#     """Print CAN message data.
 
-    Args:
-        msg (can.Message): CAN message
-    """
-    print(f"id: {hex(msg.arbitration_id)}\tdata: {hex(msg.data[0])}|{hex(msg.data[1])}|\
-{hex(msg.data[2])}|{hex(msg.data[3])}|{hex(msg.data[4])}|{hex(msg.data[5])}|\
-{hex(msg.data[6])}|{hex(msg.data[7])}")
+#     Args:
+#         msg (can.Message): CAN message
+#     """
+#     print(f"id: {hex(msg.arbitration_id)}\tdata: {hex(msg.data[0])}|{hex(msg.data[1])}|\
+# {hex(msg.data[2])}|{hex(msg.data[3])}|{hex(msg.data[4])}|{hex(msg.data[5])}|\
+# {hex(msg.data[6])}|{hex(msg.data[7])}")
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

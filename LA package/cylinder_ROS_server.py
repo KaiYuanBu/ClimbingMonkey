@@ -68,6 +68,10 @@ class CylinderServer(Node):
         """Callback for set extension action."""
         self.get_logger().info("Executing goal...")
 
+        self.driver.fault_reset()
+
+        self.driver.set_positional_control_mode()
+        
         self.driver.set_extension(goal_handle.request.target_extension, 8, False)
 
         feedback_msg = SetExtension.Feedback()
@@ -102,7 +106,7 @@ class CylinderServer(Node):
 
             prev_ext = actual_ext
 
-            goal_handle.publish_feedback(feedback_msg)
+            # goal_handle.publish_feedback(feedback_msg)
             self.save_value_to_file(feedback_msg)        
 
         goal_handle.succeed()
