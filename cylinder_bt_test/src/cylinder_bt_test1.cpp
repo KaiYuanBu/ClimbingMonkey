@@ -145,10 +145,10 @@ static const char* xml_text = R"(
     <Repeat num_cycles="2">
       <Sequence>
         <Delay delay_msec="3000">
-          <LASetExtension action_name="/set_extension" target_extension="0.5"/>
+          <LASetExtension action_name="/set_extension" target_extension="0.9"/>
         </Delay>
         <Delay delay_msec="3000">
-          <LASetExtension action_name="/set_extension" target_extension="0.0"/>
+          <LASetExtension action_name="/set_extension" target_extension="0.1"/>
         </Delay>
       </Sequence>
     </Repeat>
