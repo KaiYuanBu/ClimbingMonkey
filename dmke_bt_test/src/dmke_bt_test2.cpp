@@ -157,7 +157,7 @@ class GetPositionService: public RosServiceNode<GetPosition>
       return providedBasicPorts({
         InputPort<std::string>("service_name"),
         InputPort<int>("SupposedPosition"),
-        OutputPort<int>("position")
+        // OutputPort<int>("position")
       });
     }
 
