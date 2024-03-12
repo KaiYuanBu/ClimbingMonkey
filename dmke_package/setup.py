@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'set_position_server = dmke_package.SetPosition_server:main',
             'set_position_client = dmke_package.SetPosition_client:main',
+            'get_position_client = dmke_package.GetPosition_client:main',
         ],
     },
 )
