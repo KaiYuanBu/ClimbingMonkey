@@ -17,11 +17,11 @@ find_package(dmke_interface REQUIRED)
 # find_package(std_srvs REQUIRED)
 # find_package(arm_interfaces REQUIRED)
 
-add_executable(dmke_bt_test1 src/dmke_bt_test1.cpp)
+add_executable(dmke_bt_test2 src/dmke_bt_test2.cpp)
 # add_executable(SetPosition_server src/SetPosition_server.py)
 
 # Install
-install(TARGETS dmke_bt_test1
+install(TARGETS dmke_bt_test2
                 # mock_actuator
   DESTINATION lib/${PROJECT_NAME})
 
@@ -31,10 +31,10 @@ set(THIS_PACKAGE_DEPS
     behaviortree_ros2
     dmke_interface)
 
-ament_target_dependencies(dmke_bt_test1 ${THIS_PACKAGE_DEPS})
+ament_target_dependencies(dmke_bt_test2 ${THIS_PACKAGE_DEPS})
 # ament_target_dependencies(SetPosition_server ${THIS_PACKAGE_DEPS})
 
-target_include_directories(dmke_bt_test1 PUBLIC
+target_include_directories(dmke_bt_test2 PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
@@ -42,10 +42,10 @@ target_include_directories(dmke_bt_test1 PUBLIC
 #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 #   $<INSTALL_INTERFACE:include>)
 
-target_compile_features(dmke_bt_test1 PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(dmke_bt_test2 PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 # Install
-# install(TARGETS dmke_bt_test1
+# install(TARGETS dmke_bt_test2
 #                 # SetPosition_server
 #   DESTINATION lib/${PROJECT_NAME})
 
