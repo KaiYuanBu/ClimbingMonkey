@@ -4,6 +4,7 @@ from rclpy.node import Node
 import time
 import canopen
 from dmke_interface.action import SetPosition
+from dmke_interface.action import GetPosition
 from dmke_package.DMKEServoDriver2 import DMKEServoDriver2_V1
 
 
@@ -245,16 +246,35 @@ class SetPositionActionServer(Node):
 # feedback_msg = SetPosition.Feedback()
 # feedback_msg.current_position = actual_pos
 # goal_handle.publish_feedback(feedback_msg)
+
+
+class GetPositionService(Node):
+
+    def __init__(self):
+        super().__init__('get_position_service')
+        self.srv = self.create_service(GetPosition, 'get_position', self.get_position_callback)        # CHANGE
+        self.get_logger().info('GetPosition Server is ready!')
+
+
+    def get_position_callback(self, response):
+        response.position = SetPositionActionServer.read_integer_from_file('dmke_encoder_pos.txt')                                           # CHANGE
+        # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
+
+        return response
+
                 
 
 def main(args=None):
     rclpy.init(args=args)
 
     set_position_server = SetPositionActionServer()
+    get_position_service = GetPositionService()
 
     rclpy.spin(set_position_server)
+    rclpy.spin(get_position_service)
 
     set_position_server.destroy_node()
+    get_position_service.destroy_node()
 
     # network.disconnect()
 
