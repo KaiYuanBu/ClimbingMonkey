@@ -4,7 +4,7 @@ from rclpy.node import Node
 import time
 import canopen
 from dmke_interface.action import SetPosition
-from dmke_interface.action import GetPosition
+from dmke_interface.srv import GetPosition
 from dmke_package.DMKEServoDriver2 import DMKEServoDriver2_V1
 
 
@@ -94,7 +94,7 @@ class SetPositionActionServer(Node):
 
         data_from_file = self.read_integer_from_file(file_path='dmke_encoder_pos.txt')
         # Determine the success of the action
-        success = abs(target_position - data_from_file) <= 5
+        success = abs(target_position - data_from_file) <= 10
 
         # Create the result message
         result = SetPosition.Result()
@@ -174,7 +174,7 @@ class SetPositionActionServer(Node):
         return real_target
 
 
-    def monitor_position(self, goal_handle, instance, filepath, threshold=3, interval=0.1):
+    def monitor_position(self, goal_handle, instance, filepath, threshold=3, interval=0.05):
         """
         Monitors the position of a servo motor continuously until the change
         in position is less than the specified threshold.
@@ -221,6 +221,12 @@ class SetPositionActionServer(Node):
                     # Check if position has changed significantly
                     if abs(actual_pos - prev_pos) < threshold:
                         read_pos = instance.read_actual_pos()
+                        x = abs(actual_pos - prev_pos)
+                        if actual_pos < prev_pos:
+                            file_pos = self.read_integer_from_file(filepath) - x
+                        elif actual_pos > prev_pos:
+                            file_pos = self.read_integer_from_file(filepath) + x
+                        self.save_integer_to_file(file_pos, filepath)
                         print(read_pos)
                         break
 
@@ -257,10 +263,17 @@ class GetPositionService(Node):
 
 
     def get_position_callback(self, response):
-        response.position = SetPositionActionServer.read_integer_from_file('dmke_encoder_pos.txt')                                           # CHANGE
-        # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
-
+        response.position = self.read_integer_from_file('dmke_encoder_pos.txt')                                           # CHANGE
+        self.get_logger().info('Response Obtained: %u' % response.position) # CHANGE
         return response
+    
+    def read_integer_from_file(self, file_path):
+        # default_value = 0
+        # try:
+        with open(file_path, 'r') as file:
+            data = file.read().strip()
+            return int(data)
+        
 
                 
 
