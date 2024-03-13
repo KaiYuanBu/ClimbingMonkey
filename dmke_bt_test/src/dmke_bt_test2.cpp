@@ -1,5 +1,7 @@
 #include <behaviortree_ros2/bt_action_node.hpp>
+#include <behaviortree_ros2/bt_service_node.hpp>
 #include "dmke_interface/action/set_position.hpp"
+#include "dmke_interface/srv/get_position.hpp"
 #include <iostream>
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/executors.hpp"
@@ -173,40 +175,45 @@ class GetPositionService: public RosServiceNode<GetPosition>
     // Callback invoked when the answer is received.
     // It must return SUCCESS or FAILURE
     NodeStatus onResponseReceived(const Response::SharedPtr& response) override
-    {
-      // Log
-      if response->position <= getInput("SupposedPosition") + 20 || response->position >= getInput("SupposedPosition") - 20{
-        std::stringstream ss;
-        ss << this->name() << " -> Position Obtained: " << response->position;
-        RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
+  {
+    // Log
+    auto positiongot = response->position;
+    
+    if (positiongot <= getInput<int>("SupposedPosition").value() + 20 ||
+         positiongot >= getInput<int>("SupposedPosition").value() - 20) {
+         std::stringstream ss;
+         ss << this->name() << " -> Position Obtained: " << positiongot;
+         RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
-        setOutput("position", response->position);
-        return NodeStatus::SUCCESS;
-      }
+         setOutput("position", response->position);
+         return NodeStatus::SUCCESS;
+         }
 
-      else{
-        std::stringstream ss;
-        ss << this->name() << " -> Position NOT within bounds: " << response->position;
-        RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
-        setOutput("position", response->position);
-        return NodeStatus::FAILURE;
-      }
+    else{
+      std::stringstream ss;
+      ss << this->name() << " -> Position NOT within bounds: " << response->position;
+      RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
+
+      setOutput("position", response->position);
+      return NodeStatus::FAILURE;
     }
+  }
+
 
     // Callback invoked when there was an error at the level
     // of the communication between client and server.
     // This will set the status of the TreeNode to either SUCCESS or FAILURE,
     // based on the return value.
     // If not overridden, it will return FAILURE by default.
-    virtual NodeStatus onFailure(ServiceNodeErrorCode error) override
-    {
-      std::stringstream ss;
-      ss << this->name() << " -> Error: " << error;
-      RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
+    // virtual NodeStatus onFailure(ServiceNodeErrorCode error) override
+    // {
+    //   std::stringstream ss;
+    //   ss << this->name() << " -> Error: " << error;
+    //   RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
-      return NodeStatus::FAILURE;
-    }
+    //   return NodeStatus::FAILURE;
+    // }
 };
 
 //<?xml version="1.0" encoding="UTF-8"?>
@@ -219,13 +226,13 @@ static const char* xml_text = R"(
       <Sequence>
         <Delay delay_msec="3000">
           <Fallback>
-            <GetPosition service_name="/get_position" SupposedPosition="0"/>
+            <GetPosition service_name="/get_position" SupposedPosition="500000"/>
             <DMKESetPosition action_name="/set_position" target_position="500000"/>
           </Fallback>
         </Delay>
         <Delay delay_msec="3000">
           <Fallback>
-            <GetPosition service_name="/get_position" SupposedPosition="500000"/>
+            <GetPosition service_name="/get_position" SupposedPosition="0"/>
             <DMKESetPosition action_name="/set_position" target_position="0"/>
           </Fallback>
         </Delay>
@@ -291,7 +298,7 @@ int main(int argc, char **argv)
   
   BehaviorTreeFactory factory;
 
-  auto bt_node = std::make_shared<rclcpp::Node>("dmke_bt_test1");
+  auto bt_node = std::make_shared<rclcpp::Node>("dmke_bt_test2");
   // provide the ROS node and the name of the action service
   RosNodeParams setpos_params; 
   setpos_params.nh = bt_node;
