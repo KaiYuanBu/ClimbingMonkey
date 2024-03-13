@@ -420,6 +420,42 @@ def main(args=None):
     # 0.8 = ~56cm
     # MIN = 0.05 = ~5cm
 
+    prev_ext = float(d1.extension)
+
+    while d1.is_running:
+        time.sleep(0.1)
+        
+        actual_ext = float(d1.extension)
+        print(f'Extension: {actual_ext}')
+
+        if actual_ext < prev_ext:
+            sub_pos = abs((prev_ext - actual_ext))
+            file_pos =read_value_from_file('saved_extension.txt') - sub_pos
+            print(f"Actual extension: {file_pos}")
+            # feedback_msg.current_extension = file_pos
+            save_value_to_file(file_pos, 'saved_extension.txt')
+        #     feedback_msg.current_extension = file_pos
+        #     # save_integer_to_file(file_pos, filepath)
+
+        elif actual_ext > prev_ext:
+            sub_pos = abs((prev_ext - actual_ext))
+            file_pos = read_value_from_file('saved_extension.txt') + sub_pos
+            print(f"Actual extension: {file_pos}")
+            # feedback_msg.current_extension = file_pos
+            save_value_to_file(file_pos, 'saved_extension.txt')
+        #     feedback_msg.current_extension = file_pos
+
+        
+        # feedback_msg = SetExtension.Feedback()
+
+        # Check if position has changed significantly
+        if abs(actual_ext - prev_ext) < 0.05:
+            break
+
+        prev_ext = actual_ext
+
+
+
     # d2.set_extension(0.1, 8, False)
     # Wait until both actuators reached target
     # prev_ext = float(d1.extension)
