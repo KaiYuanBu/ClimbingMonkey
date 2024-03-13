@@ -78,7 +78,7 @@ class CylinderServer(Node):
         prev_ext = float(self.driver.extension)
 
         while self.driver.is_running:
-            # time.sleep(interval)
+            time.sleep(interval)
             
             actual_ext = float(self.driver.extension)
             self.get_logger().info(f'Extension: {actual_ext}')
@@ -103,15 +103,13 @@ class CylinderServer(Node):
 
             
             # feedback_msg = SetExtension.Feedback()
-            
-            goal_handle.publish_feedback(feedback_msg)
 
             # Check if position has changed significantly
-            # if abs(actual_ext - prev_ext) < threshold:
-            #     break
+            if abs(actual_ext - prev_ext) < threshold:
+                break
 
-            # prev_ext = actual_ext
-
+            prev_ext = actual_ext
+            goal_handle.publish_feedback(feedback_msg)
             # goal_handle.publish_feedback(feedback_msg)
             # self.save_value_to_file(feedback_msg)        
 
