@@ -211,23 +211,46 @@ class DMKEServoDriver2_V1:
             print(f"Failed to start trigger for absolute position")
 
 
-    def read_actual_pos(self):
-        try:
-            actual_pos = self.node.sdo[0x6064] # Control Word
-            # current_pos.raw = 0x00
+    # def read_actual_pos(self):
+    #     try:
+    #         actual_pos = self.node.sdo[0x6064] # Control Word
+    #         # current_pos.raw = 0x00
 
-            actual_pos.read()  # Read the actual speed
-            actual_pos = actual_pos.raw  # Get the raw bytes
+    #         actual_pos.read()  # Read the actual speed
+    #         actual_pos = actual_pos.raw  # Get the raw bytes
 
-            # Interpret the bytes based on the data format
-            # Here, we assume the actual speed is a 32-bit signed integer (4 bytes)
-            # position = int.from_bytes(actual_pos_bytes, byteorder='little', signed=True)
+    #         # Interpret the bytes based on the data format
+    #         # Here, we assume the actual speed is a 32-bit signed integer (4 bytes)
+    #         # position = int.from_bytes(actual_pos_bytes, byteorder='little', signed=True)
         
-            return actual_pos  # Return the actual speed value
+    #         return actual_pos  # Return the actual speed value
         
-        except canopen.sdo.SdoCommunicationError:
-            print(f"Failed to read current position of motor")
-            self.read_actual_pos()
+    #     except canopen.sdo.SdoCommunicationError:
+    #         print(f"Failed to read current position of motor")
+    #         # self.read_actual_pos()
+            
+    def read_actual_pos(self, max_attempts=3):
+        attempts = 0
+        while attempts < max_attempts:
+            try:
+                actual_pos = self.node.sdo[0x6064] # Control Word
+                actual_pos.read()  # Read the actual position
+                actual_pos = actual_pos.raw  # Get the raw bytes
+    
+                # Interpret the bytes based on the data format
+                # Here, we assume the actual position is a 32-bit signed integer (4 bytes)
+                # position = int.from_bytes(actual_pos_bytes, byteorder='little', signed=True)
+    
+                return actual_pos  # Return the actual position value
+            
+            except canopen.sdo.SdoCommunicationError:
+                print(f"Failed to read current position of motor. Retrying...")
+                attempts += 1
+    
+        print(f"Failed to read current position after {max_attempts} attempts.")
+        return None  # Or whatever you want to return in case of failure
+
+            
 
 
 
