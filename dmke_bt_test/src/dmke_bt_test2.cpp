@@ -130,7 +130,7 @@ class GetPositionService: public RosServiceNode<dmke_interface::srv::GetPosition
     {
       return providedBasicPorts({
         InputPort<std::string>("service_name"),
-        InputPort<int>("SupposedPosition"),
+        InputPort<int>("target_pos"),
         // OutputPort<int>("position")
       });
     }
@@ -146,19 +146,22 @@ class GetPositionService: public RosServiceNode<dmke_interface::srv::GetPosition
 
     // Callback invoked when the answer is received.
     // It must return SUCCESS or FAILURE
+
+    
+    // DO PRECONDITION HERE INSTEAD OF COMPARING VALUES INSIDE, IT SEEMS THAT IT JUST RETURNS THE FIRST STATUS FOR SOME REASON
     NodeStatus onResponseReceived(const Response::SharedPtr& response) override
   {
     // Log
-    auto positiongot = response->position;
+    int positiongot = response->position;
     
-    if (positiongot <= getInput<int>("SupposedPosition").value() + 20 ||
-         positiongot >= getInput<int>("SupposedPosition").value() - 20) {
+    if (positiongot <= getInput<int>("target_pos").value() + 20 || positiongot >= getInput<int>("target_pos").value() - 20) 
+         {
          std::stringstream ss;
          ss << this->name() << " -> Position Obtained: " << positiongot;
          RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
          // setOutput("position", response->position);
-         return NodeStatus::SUCCESS;
+         return NodeStatus::FAILURE;
          }
 
 
@@ -168,7 +171,7 @@ class GetPositionService: public RosServiceNode<dmke_interface::srv::GetPosition
       RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
       // setOutput("position", response->position);
-      return NodeStatus::FAILURE;
+      return NodeStatus::SUCCESS;
     }
   }
 
@@ -198,13 +201,13 @@ static const char* xml_text = R"(
       <Sequence>
         <Delay delay_msec="3000">
           <Fallback>
-            <GetPosition service_name="/get_position" SupposedPosition="500000"/>
+            <GetPos service_name="/get_position" target_pos="500000"/>
             <DMKESetPosition action_name="/set_position" target_position="500000"/>
           </Fallback>
         </Delay>
         <Delay delay_msec="3000">
           <Fallback>
-            <GetPosition service_name="/get_position" SupposedPosition="0"/>
+            <GetPos service_name="/get_position" target_pos="0"/>
             <DMKESetPosition action_name="/set_position" target_position="0"/>
           </Fallback>
         </Delay>
@@ -277,7 +280,7 @@ int main(int argc, char **argv)
   // setpos_params.default_port_value = "set_position_server";
 
   factory.registerNodeType<DMKESetPosition>("DMKESetPosition", setpos_params);
-  factory.registerNodeType<GetPositionService>("GetPosition", setpos_params);
+  factory.registerNodeType<GetPositionService>("GetPos", setpos_params);
   // factory.registerNodeType<DMKEGetPosService>("GetPosition", params);
 
   // Create the behavior tree using the XML description
