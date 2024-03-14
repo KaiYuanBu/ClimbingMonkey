@@ -206,14 +206,14 @@ class GetPositionService: public RosServiceNode<GetPosition>
     // This will set the status of the TreeNode to either SUCCESS or FAILURE,
     // based on the return value.
     // If not overridden, it will return FAILURE by default.
-    // virtual NodeStatus onFailure(ServiceNodeErrorCode error) override
-    // {
-    //   std::stringstream ss;
-    //   ss << this->name() << " -> Error: " << error;
-    //   RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
+    virtual NodeStatus onFailure(ServiceNodeErrorCode error) override
+    {
+      std::stringstream ss;
+      ss << this->name() << " -> Error: " << error;
+      RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
-    //   return NodeStatus::FAILURE;
-    // }
+      return NodeStatus::FAILURE;
+    }
 };
 
 //<?xml version="1.0" encoding="UTF-8"?>
