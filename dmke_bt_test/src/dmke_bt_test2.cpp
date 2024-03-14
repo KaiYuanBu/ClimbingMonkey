@@ -185,7 +185,7 @@ class GetPositionService: public RosServiceNode<GetPosition>
          ss << this->name() << " -> Position Obtained: " << positiongot;
          RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
-         setOutput("position", response->position);
+         // setOutput("position", response->position);
          return NodeStatus::SUCCESS;
          }
 
@@ -195,7 +195,7 @@ class GetPositionService: public RosServiceNode<GetPosition>
       ss << this->name() << " -> Position NOT within bounds: " << response->position;
       RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
-      setOutput("position", response->position);
+      // setOutput("position", response->position);
       return NodeStatus::FAILURE;
     }
   }
