@@ -62,34 +62,6 @@ public:
     // Return true, indicating successful goal setting
     return true;
   }
-  // This is called when the TreeNode is ticked and it should
-  // send the request to the action server
-  // bool setGoal(RosActionNode::Goal& goal) override {
-  //   // get "order" from the Input port
-  //   // getInput("order", goal.order);
-
-  //   // Create an instance of SendGoal
-  //   // SendGoal sendGoalObj;
-
-  //   // getInput("target_position", goal.target_position);
-  //   // Use goal.order directly, since it is set in the constructor
-  //   RCLCPP_INFO(node_->get_logger(), "Using value for 'target_position': %u", goal.target_position);
-  
-   // Return true, indicating successful goal setting
-    // return true;
-
-    // Create a goal message
-    // auto goal_msg = std::make_shared<example_interfaces::action::SetPosition::Goal>();
-    // goal_msg->target_position = target_position;
-
-    // if (!action_client_->wait_for_action_server(std::chrono::seconds(10))) {
-    //     RCLCPP_ERROR(this->get_logger(), "Action server not available after waiting");
-    //     return;
-    // }
-
-    // Return true, assuming the goal was set correctly
-//     return true;
-// }
   
   // Callback executed when the reply is received.
   // Based on the reply you may decide to return SUCCESS or FAILURE.
