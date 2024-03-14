@@ -14,7 +14,7 @@
 // #include <behaviortree_ros2/plugins.hpp>
 
 
-using GetPosition = dmke_interface::srv::GetPosition;
+// using GetPosition = dmke_interface::srv::GetPosition;
 using namespace BT;
 // let's define these, for brevity
 // using SetPosition = dmke_interface::action::SetPosition;
@@ -142,13 +142,13 @@ public:
 
 // SERVICE //
 
-class GetPositionService: public RosServiceNode<GetPosition>
+class GetPositionService: public RosServiceNode<dmke_interface::srv::GetPosition>
 {
   public:
     GetPositionService(const std::string& name,
                     const NodeConfig& conf,
                     const RosNodeParams& params)
-      : RosServiceNode<GetPosition>(name, conf, params)
+      : RosServiceNode<dmke_interface::srv::GetPosition>(name, conf, params)
     {}
 
     // The specific ports of this Derived class
@@ -192,7 +192,7 @@ class GetPositionService: public RosServiceNode<GetPosition>
 
     else{
       std::stringstream ss;
-      ss << this->name() << " -> Position NOT within bounds: " << response->position;
+      ss << this->name() << " -> Position NOT within bounds: " << positiongot;
       RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
       // setOutput("position", response->position);
