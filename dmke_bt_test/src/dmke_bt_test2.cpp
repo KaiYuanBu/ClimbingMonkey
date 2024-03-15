@@ -153,6 +153,8 @@ class GetPositionService: public RosServiceNode<dmke_interface::srv::GetPosition
   {
     // Log
     int positiongot = response->position;
+    print(getInput<int>("target_pos".value());
+    RCLCPP_INFO(node_->get_logger(), "TargetPosition: (getInput<int>("target_pos".value())");
     
     if (positiongot <= getInput<int>("target_pos").value() + 20 || positiongot >= getInput<int>("target_pos").value() - 20) 
          {
