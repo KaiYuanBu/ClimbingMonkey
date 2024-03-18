@@ -33,13 +33,13 @@ class DMKEServoDriver2_V1:
         # self.node.nmt.state = 'PRE-OPERATIONAL'
 
         # Set operation mode
-        try:
-            print("Activate NMT Operation Mode")
-            self.NMT_Start()
+        # try:
+        #     print("Activate NMT Operation Mode")
+        #     self.NMT_Start()
 
-        except canopen.sdo.SdoCommunicationError:
-            # TODO: Control mode not set
-            print("Failed to set NMT Operation Mode")
+        # except canopen.sdo.SdoCommunicationError:
+        #     # TODO: Control mode not set
+        #     print("Failed to set NMT Operation Mode")
 
 
     def enable(self):
