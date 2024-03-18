@@ -90,11 +90,13 @@ class DMKEServoDriver2_V1:
         """Send a Network Management (NMT) RESET NODE command to a node in a CANopen network.
         """
         self.node.nmt.send_command(0x81)
+        print("NODE RESET REQUESTED")
 
     def NMT_Reset_Comm(self):
         """Send a Network Management (NMT) RESET COMMUNICATION command to a node in a CANopen network.
         """
         self.node.nmt.send_command(0x82)
+        print("COMM RESET REQUESTED")
 
 
   ################################################################################################
