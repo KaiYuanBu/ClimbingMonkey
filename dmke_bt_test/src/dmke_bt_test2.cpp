@@ -156,10 +156,32 @@ class GetPositionService: public RosServiceNode<dmke_interface::srv::GetPosition
     print(getInput<int>("target_pos".value());
     RCLCPP_INFO(node_->get_logger(), "TargetPosition: %d", getInput<int>("target_pos").value());
     
-    if (positiongot <= getInput<int>("target_pos").value() + 20 || positiongot >= getInput<int>("target_pos").value() - 20) 
+    // if (positiongot <= getInput<int>("target_pos").value() + 20 || positiongot >= getInput<int>("target_pos").value() - 20) 
+    //      {
+    //      std::stringstream ss;
+    //      ss << this->name() << " -> Position Obtained: " << positiongot;
+    //      RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
+
+    //      // setOutput("position", response->position);
+    //      return NodeStatus::FAILURE;
+    //      }
+
+
+    // else{
+    //   std::stringstream ss;
+    //   ss << this->name() << " -> Position NOT within bounds: " << positiongot;
+    //   RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
+
+    //   // setOutput("position", response->position);
+    //   return NodeStatus::SUCCESS;
+    // }
+
+
+    if (positiongot > getInput<int>("target_pos").value() + 20 || positiongot < getInput<int>("target_pos").value() - 20) 
          {
+
          std::stringstream ss;
-         ss << this->name() << " -> Position Obtained: " << positiongot;
+         ss << this->name() << " -> Position NOT within bounds: " << positiongot;
          RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
          // setOutput("position", response->position);
@@ -168,9 +190,9 @@ class GetPositionService: public RosServiceNode<dmke_interface::srv::GetPosition
 
 
     else{
-      std::stringstream ss;
-      ss << this->name() << " -> Position NOT within bounds: " << positiongot;
-      RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
+        std::stringstream ss;
+        ss << this->name() << " -> Position Obtained: " << positiongot;
+        RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
       // setOutput("position", response->position);
       return NodeStatus::SUCCESS;
