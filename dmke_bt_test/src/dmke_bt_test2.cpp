@@ -48,8 +48,6 @@ public:
                                   InputPort<int>("target_position")});
     }
 
-
-
   bool setGoal(RosActionNode::Goal& goal) override {
     // Retrieve target_position from the input port
     if (!getInput("target_position", goal.target_position)) {
@@ -153,35 +151,11 @@ class GetPositionService: public RosServiceNode<dmke_interface::srv::GetPosition
   {
     // Log
     int positiongot = response->position;
-    print(getInput<int>("target_pos".value());
-    RCLCPP_INFO(node_->get_logger(), "TargetPosition: %d", getInput<int>("target_pos").value());
     
-    // if (positiongot <= getInput<int>("target_pos").value() + 20 || positiongot >= getInput<int>("target_pos").value() - 20) 
-    //      {
-    //      std::stringstream ss;
-    //      ss << this->name() << " -> Position Obtained: " << positiongot;
-    //      RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
-
-    //      // setOutput("position", response->position);
-    //      return NodeStatus::FAILURE;
-    //      }
-
-
-    // else{
-    //   std::stringstream ss;
-    //   ss << this->name() << " -> Position NOT within bounds: " << positiongot;
-    //   RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
-
-    //   // setOutput("position", response->position);
-    //   return NodeStatus::SUCCESS;
-    // }
-
-
     if (positiongot > getInput<int>("target_pos").value() + 20 || positiongot < getInput<int>("target_pos").value() - 20) 
          {
-
          std::stringstream ss;
-         ss << this->name() << " -> Position NOT within bounds: " << positiongot;
+         ss << this->name() << " -> Position NOT within bounds (NODESTATUS:FAILURE): " << positiongot;
          RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
          // setOutput("position", response->position);
@@ -190,9 +164,9 @@ class GetPositionService: public RosServiceNode<dmke_interface::srv::GetPosition
 
 
     else{
-        std::stringstream ss;
-        ss << this->name() << " -> Position Obtained: " << positiongot;
-        RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
+      std::stringstream ss;
+      ss << this->name() << " -> Position within bounds (NODESTATUS:SUCCESS): " << positiongot;
+      RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
       // setOutput("position", response->position);
       return NodeStatus::SUCCESS;
