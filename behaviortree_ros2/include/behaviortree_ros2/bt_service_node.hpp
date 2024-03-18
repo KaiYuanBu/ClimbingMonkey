@@ -65,7 +65,7 @@ inline const char* toStr(const ServiceNodeErrorCode& err)
  * 2. Otherwise, use the value in RosNodeParams::default_port_value
  */
 template<class ServiceT>
-class RosServiceNode : public BT::ActionNodeBase
+class RosServiceNode : public BT::StatefulActionNode
 {
 
 public:
@@ -80,7 +80,8 @@ public:
    */
   explicit RosServiceNode(const std::string & instance_name,
                           const BT::NodeConfig& conf,
-                          const BT::RosNodeParams& params);
+                          const BT::RosNodeParams& params):
+                           BT::StatefulActionNode(instance_name, conf)
 
   virtual ~RosServiceNode() = default;
 
