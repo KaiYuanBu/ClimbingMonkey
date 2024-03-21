@@ -77,7 +77,7 @@ public:
             <HeightDetection topic_name="A", height_detected="{height_1}"/>
         </Delay>
         <Delay delay_msec="3000">
-            <HeightDetection topic_name="B", height_detected="{height_1}"/>
+            <HeightDetection topic_name="B", height_detected="{height_2}"/>
         </Delay>
       </Sequence>
     </BehaviorTree>
