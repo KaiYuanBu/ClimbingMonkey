@@ -36,7 +36,7 @@ public:
     // void depthCallback(const sensor_msgs::msg::Image::SharedPtr msg) {
         // Get a pointer to the depth values casting the data
         // pointer to floating point
-        int new_val = 0;
+        float new_val = 0;
 
         for (int counter = 0; counter < 20; counter++)
         {
@@ -48,16 +48,17 @@ public:
     
             // Linear index of the center pixel
             int centerIdx = u + msg->width * v;
+            float newcenterIdx = depths[centerIdx];
     
             // Output the measure
-            RCLCPP_INFO(get_logger(), "Center distance : %g m", depths[centerIdx]);
+            RCLCPP_INFO(get_logger(), "Center distance : %g m", newcenterIdx);
     
-            new_val = new_val + centerIdx;
+            new_val = new_val + newcenterIdx;
         }
 
-        int avrg_val = new_val/20;
+        float avrg_val = new_val/20;
         setOutput("height_detected", avrg_val);
-        RCLCPP_INFO(get_logger(), "Average center distance of 20 data : %g m", depths[centerIdx]);
+        RCLCPP_INFO(get_logger(), "Average center distance of 20 data : %g m", avrg_val);
     // }
 
     // private:
