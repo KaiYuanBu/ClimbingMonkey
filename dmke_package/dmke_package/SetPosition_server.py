@@ -24,16 +24,18 @@ class SetPositionActionServer(Node):
         self.service_server = self.create_service(GetPosition, 'get_position', self.get_position_callback)        # CHANGE
         self.get_logger().info('GetPosition Server is ready!')
         
-        node_id =  0x02
+        # node_id =  0x02
+        node_id =  0x03
         self.network = canopen.Network()
         self.network.connect(interface='seeedstudio', 
-                             channel='/dev/ttyS0', 
+                             channel='/dev/ttyUSB0', 
                              baudrate=115200, 
                              bitrate=500000)
+                            # bitrate=1000000)
         # '/dev/ttyS0'
         time.sleep(1)
         self.c1 = DMKEServoDriver2_V1(self.network, node_id)
-        self.c1.NMT_Reset_Node()
+        # self.c1.NMT_Reset_Node()
         self.c1.NMT_Reset_Comm()
         
         self.c1.NMT_Pre_Op()
@@ -64,9 +66,9 @@ class SetPositionActionServer(Node):
         time.sleep(2)
 
         print("Setting Parameters for position control mode")
-        self.c1.set_profile_velocity(2800)
-        self.c1.set_profile_acceleration(2000)
-        self.c1.set_profile_deceleration(2000)
+        self.c1.set_profile_velocity(2500)
+        self.c1.set_profile_acceleration(10000)
+        self.c1.set_profile_deceleration(10000)
         time.sleep(2)
 
         # Move to target position 1
@@ -97,19 +99,29 @@ class SetPositionActionServer(Node):
 
         data_from_file = self.read_integer_from_file(file_path='dmke_encoder_pos.txt')
         # Determine the success of the action
-        success = abs(target_position - data_from_file) <= 10
+        # if data_from_file is None:
+        #     data_from_file = 0
+        
+        # else:
+        success = abs(target_position - data_from_file) <= 5000
 
         # Create the result message
         result = SetPosition.Result()
         
         result.success = success
-
+        # count = 0
         if result.success:
             self.get_logger().info('Motor reached target position')
             goal_handle.succeed()
         else:
-            self.get_logger().info('Motor failed to reach target position')
-            goal_handle.abort()
+            # while count < 3:
+            #     count += 1
+            #     self.get_logger().info('Retrying...')
+            #     continue
+            
+            # if count >= 3:
+                self.get_logger().info('Motor failed to reach target position')
+                goal_handle.abort()
 
         return result
 
@@ -170,10 +182,12 @@ class SetPositionActionServer(Node):
     def real_pos(self, instance, target_pos, file_path):
         starting_pos = self.read_integer_from_file(file_path)
         read_pos = instance.read_actual_pos()
-        if starting_pos - 10 <= read_pos <= starting_pos + 10:
+
+
+        if starting_pos - 5000 <= read_pos <= starting_pos + 5000:
             starting_pos = read_pos
 
-        if not (starting_pos - 10 <= read_pos <= starting_pos + 10):
+        if not (starting_pos - 5000 <= read_pos <= starting_pos + 5000):
             starting_pos = starting_pos
 
         if read_pos is None:
@@ -184,7 +198,8 @@ class SetPositionActionServer(Node):
         return real_target
 
 
-    def monitor_position(self, goal_handle, instance, filepath, threshold=3, interval=0.05):
+    # Threshold = 50 with Interval = 0.1 for 10000rps2 accel and decel
+    def monitor_position(self, goal_handle, instance, filepath, threshold=50, interval=0.1):
         """
         Monitors the position of a servo motor continuously until the change
         in position is less than the specified threshold.
@@ -230,7 +245,7 @@ class SetPositionActionServer(Node):
 
                     # Check if position has changed significantly
                     if abs(actual_pos - prev_pos) < threshold:
-                        read_pos = instance.read_actual_pos()
+                        # read_pos = instance.read_actual_pos()
                         x = abs(actual_pos - prev_pos)
                         if actual_pos < prev_pos:
                             file_pos = self.read_integer_from_file(filepath) - x
@@ -239,7 +254,7 @@ class SetPositionActionServer(Node):
                             file_pos = self.read_integer_from_file(filepath) + x
                             self.save_integer_to_file(file_pos, filepath)
                         
-                        print(read_pos)
+                        print(actual_pos)
                         break
 
                     prev_pos = actual_pos
