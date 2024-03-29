@@ -44,6 +44,16 @@ class SetPositionActionServer(Node):
         self.c1.NMT_Start()
         time.sleep(2)
 
+        print("Setting positional control mode")
+        self.c1.set_pos_control_mode()
+        time.sleep(2)
+
+        print("Setting Parameters for position control mode")
+        self.c1.set_profile_velocity(2500)
+        self.c1.set_profile_acceleration(10000)
+        self.c1.set_profile_deceleration(10000)
+        time.sleep(2)
+
         
     def execute_callback(self, goal_handle):
         self.get_logger().info('Received goal: Move motor to position %d' % goal_handle.request.target_position)
@@ -60,16 +70,6 @@ class SetPositionActionServer(Node):
         #     update_integer_data(actual_pos)
         # # actual_pos = read_integer_data()
         self.c1.enable()
-
-        print("Setting positional control mode")
-        self.c1.set_pos_control_mode()
-        time.sleep(2)
-
-        print("Setting Parameters for position control mode")
-        self.c1.set_profile_velocity(2500)
-        self.c1.set_profile_acceleration(10000)
-        self.c1.set_profile_deceleration(10000)
-        time.sleep(2)
 
         # Move to target position 1
         real_target1 = self.real_pos(self.c1, target_position, 'dmke_encoder_pos.txt')
