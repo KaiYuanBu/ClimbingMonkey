@@ -1,5 +1,5 @@
 float32 target_extension
 ---
-bool success
+bool success_ext
 ---
 float32 current_extension
