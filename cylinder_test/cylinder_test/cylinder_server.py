@@ -32,21 +32,22 @@ class CylinderServer(Node):
 
         self.declare_parameter('can_id', 1,
             ParameterDescriptor(description='CAN ID of the target driver.'))
-        self.declare_parameter('can_channel', '/dev/ttyS0',
+        self.declare_parameter('can_channel', '/dev/ttyUSB2',
             ParameterDescriptor(description='Channel of CAN tranceiver.'))
-        self.declare_parameter('can_baudrate', 2000000,
+        # self.declare_parameter('can_baudrate', 2000000,
+        self.declare_parameter('can_baudrate', 115200,
             ParameterDescriptor(description='Baudrate of USB communication.'))
         self.declare_parameter('can_bitrate', 500000,
             ParameterDescriptor(description='Bitrate of CAN communication bus in bit/s.'))
         
-        # Get parameters
+        # Get parameter
         self.can_id = self.get_parameter('can_id').value
         can_channel = self.get_parameter('can_channel').value
         baudrate = self.get_parameter('can_baudrate').value
         bitrate = self.get_parameter('can_bitrate').value
 
         # Create CAN connection
-        bus = can.ThreadSafeBus(
+        self.bus = can.ThreadSafeBus(
             interface='seeedstudio', channel=can_channel, baudrate=baudrate, bitrate=bitrate
             # interface='socketcan', channel='can0', bitrate=500000
         )
@@ -54,7 +55,8 @@ class CylinderServer(Node):
         time.sleep(0.5)
 
         # Initialize driver
-        self.driver = IDSServoDriver(bus, self.can_id, name="LA1")
+        self.driver = IDSServoDriver(self.bus, self.can_id, name="LA1")
+        self.driver.fault_reset()
         time.sleep(0.5)
         self.driver.set_positional_control_mode()
 
@@ -64,52 +66,50 @@ class CylinderServer(Node):
         # Start message
         self.get_logger().info(f"SetExtension Server started")
 
-    def action_callback(self, goal_handle:ServerGoalHandle, filepath='saved_extension.txt', interval=0.1, threshold=0.05):
+    def action_callback(self, goal_handle:ServerGoalHandle, filepath='saved_extension.txt'):
         """Callback for set extension action."""
         self.get_logger().info("Executing goal...")
 
-        self.driver.fault_reset()
-
-        self.driver.set_positional_control_mode()
+        # self.driver.set_positional_control_mode()
         
         self.driver.set_extension(goal_handle.request.target_extension, 8, False)
+        # actual_ext = self.driver.extension_feedback()
+        
+        self.monitor_extension(goal_handle, self.driver, filepath, message=self.bus.recv())
+        # prev_ext = float(self.driver.extension)
 
-        feedback_msg = SetExtension.Feedback()
-        prev_ext = float(self.driver.extension)
-
-        while self.driver.is_running:
-            time.sleep(interval)
+            # time.sleep(interval)
             
-            actual_ext = float(self.driver.extension)
-            self.get_logger().info(f'Extension: {actual_ext}')
             
+            # self.get_logger().info(f'Extension: {actual_ext}')
+            # self.save_value_to_file(actual_ext, filepath)
 
-            if actual_ext < prev_ext:
-                sub_pos = abs((prev_ext - actual_ext))
-                file_pos =self.read_value_from_file(filepath) - sub_pos
-                print(f"Actual extension: {file_pos}")
-                feedback_msg.current_extension = file_pos
-                self.save_value_to_file(file_pos, filepath)
+            # if actual_ext < prev_ext:
+            #     sub_pos = abs((prev_ext - actual_ext))
+            #     file_pos =self.read_value_from_file(filepath) - sub_pos
+            #     print(f"Actual extension: {file_pos}")
             #     feedback_msg.current_extension = file_pos
-            #     # save_integer_to_file(file_pos, filepath)
+            #     self.save_value_to_file(file_pos, filepath)
+            # #     feedback_msg.current_extension = file_pos
+            # #     # save_value_to_file(file_pos, filepath)
 
-            elif actual_ext > prev_ext:
-                sub_pos = abs((prev_ext - actual_ext))
-                file_pos = self.read_value_from_file(filepath) + sub_pos
-                print(f"Actual extension: {file_pos}")
-                feedback_msg.current_extension = file_pos
-                self.save_value_to_file(file_pos, filepath)
+            # elif actual_ext > prev_ext:
+            #     sub_pos = abs((prev_ext - actual_ext))
+            #     file_pos = self.read_value_from_file(filepath) + sub_pos
+            #     print(f"Actual extension: {file_pos}")
             #     feedback_msg.current_extension = file_pos
+            #     self.save_value_to_file(file_pos, filepath)
+            # #     feedback_msg.current_extension = file_pos
 
             
-            # feedback_msg = SetExtension.Feedback()
+            # # feedback_msg = SetExtension.Feedback()
 
-            # Check if position has changed significantly
-            if abs(actual_ext - prev_ext) < threshold:
-                break
+            # # Check if position has changed significantly
+            # if abs(actual_ext - prev_ext) < threshold:
+            #     break
 
-            prev_ext = actual_ext
-            goal_handle.publish_feedback(feedback_msg)
+            # prev_ext = actual_ext
+            # goal_handle.publish_feedback(feedback_msg)
             # goal_handle.publish_feedback(feedback_msg)
             # self.save_value_to_file(feedback_msg)        
 
@@ -123,89 +123,120 @@ class CylinderServer(Node):
     
     def save_value_to_file(self, number, file_path):
         if not isinstance(number, float):
-            raise ValueError("Input must be a float.")
-            # print("Input not integer...Saving as 0")
+            raise ValueError("Input must be an value.")
+            # print("Input not value...Saving as 0")
 
         with open(file_path, 'w') as file:
             file.write(str(number))
 
     def read_value_from_file(self, file_path):
         # default_value = 0
-        try:
-            with open(file_path, 'r') as file:
-                data = file.read().strip()
-                return float(data)
-        
-        except FileNotFoundError:
-            # If the file does not exist, create it and return 0
-            self.get_logger().warn(f"File {file_path} not found. Creating it with default value 0.")
-            self.save_value_to_file(0, file_path)
-            return 0
-    
-    # def monitor_position(self, goal_handle, instance, filepath, threshold=3, interval=0.1):
-    #     """
-    #     Monitors the position of a servo motor continuously until the change
-    #     in position is less than the specified threshold.
+        # try:
+        with open(file_path, 'r') as file:
+            data = file.read().strip()
+            return float(data)
+        # except (ValueError, FileNotFoundError):
+        #     # If file not found, create the file with default value
+        #     with open(file_path, 'w') as file:
+        #         file.write(str(default_value))
+        #     return default_value
 
-    #     Args:
-    #     - instance: The instance for the linear actuator.
-    #     - threshold (optional): The threshold for considering the change in
-    #                             position significant. Defaults to 5.
-    #     - interval (optional): The time interval (in seconds) between position
-    #                            readings. Defaults to 0.2 seconds.
-    #     """
+    def real_ext(self, instance, target_ext, file_path):
+        starting_ext = self.read_value_from_file(file_path)
+        read_ext = instance.read_actual_ext()
 
-    #     prev_pos = instance.read_actual_pos()
-    #     # print(f"Position from Motor's Perspective {prev_pos}")
-    #     error_count = 0  # Initialize error count
 
-    #     while True:
-    #         time.sleep(interval)
-    #         try:
-    #             # Read the actual position
-    #             actual_pos = instance.read_actual_pos()
+        if starting_ext - 0.1 <= read_ext <= starting_ext + 0.1:
+            starting_ext = read_ext
 
-    #             # Handle the case where actual_pos is a valid position
-    #             if actual_pos is not None and prev_pos is not None:
+        if not (starting_ext - 0.1 <= read_ext <= starting_ext + 0.1):
+            starting_ext = starting_ext
 
-    #                 if actual_pos < prev_pos:
-    #                     sub_pos = abs((prev_pos - actual_pos))
-    #                     file_pos =self.read_integer_from_file(filepath) - sub_pos
-    #                     print(f"Actual extension: {file_pos}")
-    #                     # save_integer_to_file(file_pos, filepath)
+        if read_ext is None:
+            starting_ext = starting_ext
 
-    #                 elif actual_pos > prev_pos:
-    #                     sub_pos = abs((prev_pos - actual_pos))
-    #                     file_pos = self.read_integer_from_file(filepath) + sub_pos
-    #                     print(f"Actual extension: {file_pos}")
+        print(f"Current extition: {starting_ext}")
+        real_target_ext = read_ext + (target_ext - starting_ext)
+        return real_target_ext
 
-    #                 self.save_integer_to_file(file_pos, filepath)
-    #                 feedback_msg = SetExtension.Feedback()
-    #                 feedback_msg.current_position = file_pos
-    #                 goal_handle.publish_feedback(feedback_msg)
 
-    #                 # Check if position has changed significantly
-    #                 if abs(actual_pos - prev_pos) < threshold:
-    #                     read_pos = instance.read_actual_pos()
-    #                     print(read_pos)
-    #                     break
+    # Threshold = 50 with Interval = 0.1 for 10000rps2 accel and decel
+    def monitor_extension(self, goal_handle, instance, filepath, message, threshold=0.05, interval=0.1):
+        """
+        Monitors the extension of a servo motor continuously until the change
+        in extension is less than the specified threshold.
 
-    #                 prev_pos = actual_pos
+        Args:
+        - c1: The DMKEServoDriver2_V1 object for the servo motor.
+        - threshold (optional): The threshold for considering the change in
+                                extension significant. Defaults to 5.
+        - interval (optional): The time interval (in seconds) between extension
+                               readings. Defaults to 0.2 seconds.
+        """
 
-    #             else:
-    #                 # raise ValueError("Failed to read current position of motor")
-    #                 continue
+        prev_ext = instance.extension_feedback(message)
+        # print(f"extension from Motor's Perspective {prev_ext}")
+        error_count = 0  # Initialize error count
+        feedback_msg = SetExtension.Feedback()
 
-    #         except can.CanTimeoutError as e:
-    #             error_code = e.code
-    #             print("SDO Aborted Error Code:", hex(error_code))
-    #             error_count += 1  # Increase error count on each occurrence
+        while self.driver.is_running:
+            time.sleep(interval)
+            try:
+                # Read the actual extension
+                actual_ext = instance.extension_feedback(message)
 
-    #             if error_count >= 5:
-    #                 raise ValueError("SDO Aborted Error occurred 5 times. Stopping the function.")
+                # Handle the case where actual_ext is a valid extension
+                if actual_ext is not None and prev_ext is not None:
 
-    #             else:
-    #                 continue
+                    if actual_ext < prev_ext:
+                        sub_ext = abs((prev_ext - actual_ext))
+                        file_ext =self.read_value_from_file(filepath) - sub_ext
+                        print(f"Actual extension: {file_ext}")
+                        # save_value_to_file(file_ext, filepath)
+                        feedback_msg.current_extension = file_ext
+                        self.save_value_to_file(file_ext, filepath)
+
+                    elif actual_ext > prev_ext:
+                        sub_ext = abs((prev_ext - actual_ext))
+                        file_ext = self.read_value_from_file(filepath) + sub_ext
+                        print(f"Actual extension: {file_ext}")
+                        feedback_msg.current_extension = file_ext
+                        self.save_value_to_file(file_ext, filepath)
+
+                    goal_handle.publish_feedback(feedback_msg)
+
+                    # Check if extension has changed significantly
+                    if abs(actual_ext - prev_ext) < threshold:
+                        # read_ext = instance.read_actual_ext()
+                        x = abs(actual_ext - prev_ext)
+                        if actual_ext < prev_ext:
+                            file_ext = self.read_value_from_file(filepath) - x
+                            self.save_value_to_file(file_ext, filepath)
+                        elif actual_ext > prev_ext:
+                            file_ext = self.read_value_from_file(filepath) + x
+                            self.save_value_to_file(file_ext, filepath)
+                        
+                        print(actual_ext)
+                        break
+
+                    prev_ext = actual_ext
+
+                else:
+                    # raise ValueError("Failed to read current extension of motor")
+                    continue
+
+            except can.CanError as e:
+                error_code = e.code
+                print("CAN Error Code:", hex(error_code))
+                error_count += 1  # Increase error count on each occurrence
+
+                if error_count >= 5:
+                    raise ValueError("CAN Error occurred 5 times. Stopping the function.")
+
+                else:
+                    # self.monitor_extension(self, goal_handle, instance, filepath, threshold=3, interval=0.05)
+                    continue
+
 
 def main(args=None):
     """Run when this script is called."""
