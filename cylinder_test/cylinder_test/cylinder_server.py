@@ -237,6 +237,23 @@ class CylinderServer(Node):
                     # self.monitor_extension(self, goal_handle, instance, filepath, threshold=3, interval=0.05)
                     continue
 
+    # SERVICE #
+class CheckExtensionService(Node):
+
+    def __init__(self):
+        super().__init__('check_extension_service')
+        self.srv = self.create_service(GetExtension, 'GetExtension', self.get_extension_callback)        # CHANGE
+        self.get_logger().info('GetExtension Server is ready!')
+
+
+    def get_extension_callback(self, response):
+        # node_id = request.node_id.to_bytes(1, byteorder='little')
+        response.extension = read_value_from_file('saved_extension_pos.txt')                                           # CHANGE
+        # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
+
+        return response
+    
+
 
 def main(args=None):
     """Run when this script is called."""
