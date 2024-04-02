@@ -7,7 +7,7 @@
           <Fallback>
             <LAGetExt service_name="/GetExtension"
                       target_ext=""/>
-            <LASetExtension action_name="retract_la"
+            <LASetExtension action_name="/SetExtension"
                             target_extension=""/>
           </Fallback>
           <Fallback>
@@ -47,7 +47,7 @@
           <Fallback>
             <LAGetExt service_name="/GetExtension"
                       target_ext=""/>
-            <LASetExtension action_name="extend_la"
+            <LASetExtension action_name="/SetExtension"
                             target_extension=""/>
           </Fallback>
         </Sequence>
@@ -55,7 +55,7 @@
           <Fallback>
             <LAGetExt service_name="/GetExtension"
                       target_ext=""/>
-            <LASetExtension action_name="extend_la"
+            <LASetExtension action_name="/SetExtension"
                             target_extension=""/>
           </Fallback>
           <Fallback>
@@ -110,7 +110,7 @@
           </Fallback>
           <Fallback>
             <DMKEGetPos node_id="3"
-                        service_name="check_lc"
+                        service_name="/get_position"
                         next_pos="0"/>
             <DMKESetPosition node_id="3"
                              action_name="/set_position"
@@ -123,6 +123,30 @@
                             target_extension=""/>
           </Fallback>
         </Sequence>
+        <Sequence name="DOWN6">
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="/SetExtension"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="550000"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="550000"/>
+          </Fallback>
+        </Sequence>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
@@ -133,12 +157,12 @@
       <Sequence>
         <Sequence name="UP1">
           <Fallback>
-            <DMKEGetPos node_id="2"
+            <DMKEGetPos node_id="3"
                         service_name="/get_position"
-                        next_pos="550000"/>
-            <DMKESetPosition node_id="2"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="3"
                              action_name="/set_position"
-                             target_position="550000"/>
+                             target_position="0"/>
           </Fallback>
           <Fallback>
             <LAGetExt service_name="/GetExtension"
@@ -147,12 +171,12 @@
                             target_extension=""/>
           </Fallback>
           <Fallback>
-            <DMKEGetPos node_id="3"
+            <DMKEGetPos node_id="2"
                         service_name="/get_position"
-                        next_pos="0"/>
-            <DMKESetPosition node_id="3"
+                        next_pos="550000"/>
+            <DMKESetPosition node_id="2"
                              action_name="/set_position"
-                             target_position="0"/>
+                             target_position="550000"/>
           </Fallback>
         </Sequence>
         <Sequence name="UP2">
@@ -251,6 +275,30 @@
                             target_extension=""/>
           </Fallback>
         </Sequence>
+        <Sequence name="UP6">
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="retract_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+        </Sequence>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
@@ -268,14 +316,6 @@
         <Repeat num_cycles="{climb_steps}">
           <SubTree ID="ClimbUp"/>
         </Repeat>
-        <Fallback>
-          <DMKEGetPos node_id="3"
-                      service_name="check_lc"
-                      next_pos="0"/>
-          <DMKESetPosition node_id="3"
-                           action_name="close_lc"
-                           target_position="0"/>
-        </Fallback>
         <Delay delay_msec="10000">
           <Repeat num_cycles="{climb_steps}">
             <SubTree ID="ClimbDown"
