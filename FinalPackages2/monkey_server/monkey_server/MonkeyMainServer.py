@@ -135,14 +135,14 @@ class DMKESetPositionServer(Node):
 
         data_from_file = self.read_integer_from_file(dmke_save_filepath(node_id))
         # Determine the success of the action
-        success = abs(target_position - data_from_file) <= 15
+        success = abs(target_position - data_from_file) <= 5000
 
         # Create the result message
         result = SetPosition.Result()
         
-        result.success = success
+        result.success_pos = success
 
-        if result.success:
+        if result.success_pos:
             self.get_logger().info('Motor reached target position')
             goal_handle.succeed()
         else:
@@ -315,7 +315,7 @@ class CylinderServer(Node):
         # self.driver.disable()
 
         result = SetExtension.Result()
-        result.success = True
+        result.success_ext = True
         return result
 
     def real_ext(self, instance, target_ext, file_path):
@@ -450,27 +450,6 @@ def read_value_from_file(file_path):
         with open(file_path, 'w') as file:
             file.write(str(0))
         return 0
-    
-# def save_value_to_file(self, number, file_path):
-#         if not isinstance(number, float):
-#             raise ValueError("Input must be an value.")
-#             # print("Input not value...Saving as 0")
-
-#         with open(file_path, 'w') as file:
-#             file.write(str(number))
-
-# def read_value_from_file(self, file_path):
-#     # default_value = 0
-#     # try:
-#     with open(file_path, 'r') as file:
-#         data = file.read().strip()
-#         return float(data)
-#     # except (ValueError, FileNotFoundError):
-#     #     # If file not found, create the file with default value
-#     #     with open(file_path, 'w') as file:
-#     #         file.write(str(default_value))
-#     #     return default_value
-
                 
 def save_integer_to_file(number, file_path):
         if not isinstance(number, int):

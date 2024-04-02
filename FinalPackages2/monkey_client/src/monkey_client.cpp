@@ -30,6 +30,9 @@ using namespace std::chrono;
 int count = 0;
 float new_val = 0;
 
+int x = 0; //Climb Up steps number
+int n = 0; //Number of cycles to climb
+int y = 0; //Climb Down steps number
 
 // ##### ========== ---------- DMKE ----------  ========== #### //
 // ACTION //
@@ -51,7 +54,8 @@ public:
   // }
   
   static PortsList providedPorts() {
-        return providedBasicPorts({InputPort<std::string>("action_name"), 
+        return providedBasicPorts({InputPort<int>("node_id"),
+                                  InputPort<std::string>("action_name"), 
                                   InputPort<int>("target_position")});
     }
 
@@ -76,9 +80,17 @@ public:
     ss << "Result received: ";
     auto result = wr.result->success_pos;
     ss << result << " ";
-  
-    RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
-    return NodeStatus::SUCCESS;
+
+    if (result == 1){
+      RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
+      return NodeStatus::SUCCESS;
+    }
+
+    else{
+      RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
+      return NodeStatus::FAILURE;
+    }
+    
     // try {
     //     auto result = future.get().get();
     //     RCLCPP_INFO(rclcpp::get_logger("get_result_callback"), "Result received: %u", result.success);
@@ -134,6 +146,7 @@ class DMKEGetPosition: public RosServiceNode<dmke_interface::srv::GetPosition>
     static PortsList providedPorts()
     {
       return providedBasicPorts({
+        InputPort<int>("node_id"),
         InputPort<std::string>("service_name"),
         InputPort<int>("target_pos"),
         // OutputPort<int>("position")
