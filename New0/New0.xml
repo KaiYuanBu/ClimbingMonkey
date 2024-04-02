@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="ClimbDown">
+    <Fallback>
+      <Sequence>
+        <Sequence name="DOWN1">
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name="check_uc"/>
+            <DMKESetPosition node_id=""
+                             action_name="close_uc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt/>
+            <LASetExtension action_name="retract_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name="check_lc"/>
+            <DMKESetPosition node_id=""
+                             action_name="open_lc"
+                             target_position=""/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="DOWN2">
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name="check_lc"/>
+            <DMKESetPosition node_id=""
+                             action_name="open_lc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name="check_uc"/>
+            <DMKESetPosition node_id=""
+                             action_name="close_uc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="DOWN3">
+          <Fallback>
+            <LAGetExt/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name="check_uc"/>
+            <DMKESetPosition node_id=""
+                             action_name="close_uc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name="check_lc"/>
+            <DMKESetPosition node_id=""
+                             action_name="close_lc"
+                             target_position=""/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="DOWN4">
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name="check_lc"/>
+            <DMKESetPosition node_id=""
+                             action_name="close_lc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name="check_uc"/>
+            <DMKESetPosition node_id=""
+                             action_name="open_uc"
+                             target_position=""/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="DOWN5">
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name="check_uc"/>
+            <DMKESetPosition node_id=""
+                             action_name="open_uc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name="check_lc"/>
+            <DMKESetPosition node_id=""
+                             action_name="close_lc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt/>
+            <LASetExtension action_name="retract_la"
+                            target_extension=""/>
+          </Fallback>
+        </Sequence>
+      </Sequence>
+      <AlwaysFailure name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="ClimbUp">
+    <Fallback>
+      <Sequence>
+        <Sequence name="UP1">
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name=""/>
+            <DMKESetPosition node_id=""
+                             action_name="open_uc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt/>
+            <LASetExtension action_name="retract_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name=""/>
+            <DMKESetPosition node_id=""
+                             action_name="close_lc"
+                             target_position=""/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="UP2">
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name=""/>
+            <DMKESetPosition node_id=""
+                             action_name="close_lc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name=""/>
+            <DMKESetPosition node_id=""
+                             action_name="open_uc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="UP3">
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name=""/>
+            <DMKESetPosition node_id=""
+                             action_name="close_lc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name=""/>
+            <DMKESetPosition node_id=""
+                             action_name="close_uc"
+                             target_position=""/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="UP4">
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name=""/>
+            <DMKESetPosition node_id=""
+                             action_name="close_uc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name=""/>
+            <DMKESetPosition node_id=""
+                             action_name="open_lc"
+                             target_position=""/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="UP5">
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name=""/>
+            <DMKESetPosition node_id=""
+                             action_name="open_lc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id=""
+                        service_name=""/>
+            <DMKESetPosition node_id=""
+                             action_name="close_uc"
+                             target_position=""/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt/>
+            <LASetExtension action_name="retract_la"
+                            target_extension=""/>
+          </Fallback>
+        </Sequence>
+      </Sequence>
+      <AlwaysFailure name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="New0">
+    <Fallback>
+      <Sequence>
+        <Fallback>
+          <MotorInit ucid="2"
+                     lcid="3"/>
+          <AlwaysFailure name="AskForHelp"/>
+        </Fallback>
+        <Fallback>
+          <Sequence>
+            <Fallback>
+              <DMKEGetPos node_id=""
+                          service_name=""/>
+              <DMKESetPosition node_id=""
+                               action_name="open_uc"
+                               target_position=""/>
+            </Fallback>
+            <Fallback>
+              <DMKEGetPos node_id=""
+                          service_name=""/>
+              <DMKESetPosition node_id=""
+                               action_name="open_lc"
+                               target_position=""/>
+            </Fallback>
+            <Fallback>
+              <LAGetExt/>
+              <LASetExtension action_name="retract_la"
+                              target_extension=""/>
+            </Fallback>
+          </Sequence>
+          <AlwaysFailure name="AskForHelp"/>
+        </Fallback>
+        <Repeat num_cycles="3">
+          <SubTree ID="ClimbUp"/>
+        </Repeat>
+        <Fallback>
+          <DMKEGetPos node_id=""
+                      service_name=""/>
+          <DMKESetPosition node_id=""
+                           action_name="close_la"
+                           target_position=""/>
+        </Fallback>
+        <Delay delay_msec="10000">
+          <Repeat num_cycles="3">
+            <SubTree ID="ClimbDown"
+                     _autoremap="false"/>
+          </Repeat>
+        </Delay>
+      </Sequence>
+      <AlwaysFailure name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="DMKEGetPos"
+            editable="true">
+      <input_port name="node_id"/>
+      <input_port name="service_name"/>
+    </Action>
+    <Action ID="DMKESetPosition"
+            editable="true">
+      <input_port name="node_id"/>
+      <input_port name="action_name"/>
+      <input_port name="target_position"/>
+    </Action>
+    <Action ID="LAGetExt"
+            editable="true"/>
+    <Action ID="LASetExtension"
+            editable="true">
+      <input_port name="action_name"/>
+      <input_port name="target_extension"/>
+    </Action>
+    <Action ID="MotorInit"
+            editable="true">
+      <input_port name="ucid"/>
+      <input_port name="lcid"/>
+    </Action>
+  </TreeNodesModel>
+
+</root>
