@@ -39,22 +39,22 @@ class SetPositionActionServer(Node):
         self.c1.NMT_Reset_Comm()
         
         self.c1.NMT_Pre_Op()
-        time.sleep(2)
+        time.sleep(0.5)
         
         self.c1.NMT_Start()
-        time.sleep(2)
+        time.sleep(0.5)
 
         # self.c1.enable()
 
         print("Setting positional control mode")
         self.c1.set_pos_control_mode()
-        time.sleep(2)
+        time.sleep(0.5)
 
         print("Setting Parameters for position control mode")
         self.c1.set_profile_velocity(2500)
         self.c1.set_profile_acceleration(10000)
         self.c1.set_profile_deceleration(10000)
-        time.sleep(2)
+        time.sleep(0.5)
 
         
     def execute_callback(self, goal_handle):
