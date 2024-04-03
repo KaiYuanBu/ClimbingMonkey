@@ -21,8 +21,8 @@ class SetPositionActionServer(Node):
             cancel_callback=self.cancel_callback
             )
         
-        # self.service_server = self.create_service(GetPosition, 'get_position', self.get_position_callback)        # CHANGE
-        # self.get_logger().info('GetPosition Server is ready!')
+        self.service_server = self.create_service(GetPosition, 'get_position', self.get_position_callback)        # CHANGE
+        self.get_logger().info('GetPosition Server is ready!')
         
         node_id =  0x02
         # node_id =  0x03
