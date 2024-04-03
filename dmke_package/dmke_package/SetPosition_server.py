@@ -100,9 +100,9 @@ class SetPositionActionServer(Node):
 
         # count += 1
 
-        time.sleep(2)
+        # time.sleep(2)
         self.c1.disable
-        time.sleep(2)
+        # time.sleep(2)
 
         # self.c1.NMT_Pre_Op()
         # time.sleep(2)
