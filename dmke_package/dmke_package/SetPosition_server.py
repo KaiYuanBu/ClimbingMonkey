@@ -6,7 +6,7 @@ import canopen
 from dmke_interface.action import SetPosition
 from dmke_interface.srv import GetPosition
 from dmke_package.DMKEServoDriver2 import DMKEServoDriver2_V1
-
+import csv
 
 
 class SetPositionActionServer(Node):
@@ -72,6 +72,9 @@ class SetPositionActionServer(Node):
         #     update_integer_data(actual_pos)
         # # actual_pos = read_integer_data()
         self.c1.enable()
+        read_current1 = self.c1.read_actual_current()
+        print(f"Starting Actual Current: {read_current1}")
+        write_current_value_to_csv('ActualCurrentValues.csv', read_current1)
 
         # Move to target position 1
         real_target1 = self.real_pos(self.c1, target_position, 'dmke_encoder_pos.txt')
@@ -79,7 +82,7 @@ class SetPositionActionServer(Node):
         print(f"Setting Target position to {target_position}")
         
         self.c1.set_target_location(real_target1)
-        time.sleep(2)
+        # time.sleep(2)
 
         print(f"Moving to position {target_position}")
         # print(f"Encoder Counts Left: {real_target1}")
@@ -90,6 +93,11 @@ class SetPositionActionServer(Node):
         # save_integer_to_file(pospos, 'dmke_encoder_pos.txt')
         # input = check_pos(c1, 'dmke_encoder_pos.txt')
         self.monitor_position(goal_handle, self.c1, filepath='dmke_encoder_pos.txt')
+
+        read_current2 = self.c1.read_actual_current()
+        print(f"Final Actual Current: {read_current2}")
+        write_current_value_to_csv('ActualCurrentValues.csv', read_current2)
+
         # count += 1
 
         time.sleep(2)
@@ -153,7 +161,10 @@ class SetPositionActionServer(Node):
     #     if data1 is None:
     #         return data2
 
-
+    def write_current_value_to_csv(filename, current_value):
+        with open(filename, mode='a', newline='') as file:  # 'a' for append mode
+            writer = csv.writer(file)
+            writer.writerow([current_value])
     
     def save_integer_to_file(self, number, file_path):
         if not isinstance(number, int):
@@ -227,6 +238,7 @@ class SetPositionActionServer(Node):
                 actual_pos = instance.read_actual_pos()
                 read_current = instance.read_actual_current()
                 print(f"Actual Current: {read_current}")
+                write_current_value_to_csv('ActualCurrentValues.csv', read_current)
 
                 # Handle the case where actual_pos is a valid position
                 if actual_pos is not None and prev_pos is not None:
