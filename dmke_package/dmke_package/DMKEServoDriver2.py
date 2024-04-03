@@ -29,8 +29,9 @@ class DMKEServoDriver2_V1:
             node_id (int): CANopen node ID of the servo.
         """
         # self.node = network.add_node(node_id, f'DCHCAN.eds')
-        self.node = network.add_node(node_id, '/home/bky/my_monkey/src/dmke_package/dmke_package/DCHCAN.eds')
+        self.node = network.add_node(node_id, '/home/mon3/bky_monkey/src/dmke_package/dmke_package/DCHCAN.eds')
         # self.node.nmt.state = 'PRE-OPERATIONAL'
+        # /home/bky/my_monkey/src/dmke_package/dmke_package/DCHCAN.eds'
 
         # Set operation mode
         # try:
@@ -388,9 +389,9 @@ class DMKEServoDriver2_V1:
 
             # Interpret the bytes based on the data format
             # Here, we assume the actual speed is a 32-bit signed integer (4 bytes)
-            current = int.from_bytes(actual_current_bytes, byteorder='little', signed=True)
+            # current = int.from_bytes(actual_current_bytes, byteorder='little', signed=True)
         
-            return current  # Return the actual speed value
+            return actual_current_bytes  # Return the actual speed value
         
         except canopen.sdo.SdoCommunicationError:
             print(f"Failed to read actual current of motor")
@@ -427,3 +428,61 @@ class DMKEServoDriver2_V1:
     # network.sync.start(0.01)
 
     # network.sync.stop()
+            
+def main(args=None):
+    target_position = 100000
+    node_id =  0x03
+    network = canopen.Network()
+    network.connect(interface='seeedstudio', 
+                         channel='/dev/ttyUSB0', 
+                         baudrate=115200, 
+                         bitrate=1000000)
+    # '/dev/ttyS0'
+    time.sleep(1)
+    c1 = DMKEServoDriver2_V1(network, node_id)
+    c1.NMT_Reset_Node()
+    c1.NMT_Reset_Comm()
+
+    c1.NMT_Pre_Op()
+    time.sleep(2)
+    
+    c1.NMT_Start()
+    time.sleep(2)
+    
+    c1.enable()
+
+    print("Setting positional control mode")
+    c1.set_pos_control_mode()
+    time.sleep(2)
+
+    print("Setting Parameters for position control mode")
+    c1.set_profile_velocity(2500)
+    c1.set_profile_acceleration(100)
+    c1.set_profile_deceleration(100)
+    time.sleep(2)
+
+    # Move to target position 1
+    # real_target1 = self.real_pos(self.c1, target_position, 'dmke_encoder_pos.txt')
+
+    print(f"Setting Target position to {target_position}")
+    
+    c1.set_target_location(target_position)
+    time.sleep(2)
+
+    print(f"Moving to position {target_position}")
+    # print(f"Encoder Counts Left: {real_target1}")
+    c1.start_trigger_absolute()
+
+    # real_pos = read_integer_from_file('dmke_encoder_pos.txt')
+    # pospos = real_pos + c1.read_actual_pos()
+    # save_integer_to_file(pospos, 'dmke_encoder_pos.txt')
+    # input = check_pos(c1, 'dmke_encoder_pos.txt')
+    # self.monitor_position(goal_handle, self.c1, filepath='dmke_encoder_pos.txt')
+    # count += 1
+
+    time.sleep(2)
+    c1.disable
+    time.sleep(2)
+    
+if __name__ == '__main__':
+    main()
