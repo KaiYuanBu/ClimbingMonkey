@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'monkey_main_server = monkey_server.monkey_server:main',
+            'monkey_main_server = monkey_server.MonkeyMainServer:main',
         ],
     },
 )

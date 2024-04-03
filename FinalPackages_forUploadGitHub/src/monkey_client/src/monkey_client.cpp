@@ -25,7 +25,7 @@
 using namespace BT;
 using namespace std::chrono;
 // let's define these, for brevity
-// using SetPosition = monkey_interface::action::SetPosition;
+// using SetPosition = monkey_interface::action::SetPosition;/
 // using GoalHandleSetPosition = rclcpp_action::ServerGoalHandle<SetPosition>;
 
 // PUT ALL THE CLIENT IN THIS FILE SO THAT BT CAN TICK WHEN CALLED.
@@ -34,9 +34,9 @@ using namespace std::chrono;
 int count = 0;
 float new_val = 0;
 
-int x = 0; //Climb Up steps number
-int n = 0; //Number of cycles to climb
-int y = 0; //Climb Down steps number
+// int x = 0; //Climb Up steps number
+// int n = 0; //Number of cycles to climb
+// int y = 0; //Climb Down steps number
 
 
 void save_value_to_file(int number, const std::string& file_path) {
@@ -49,24 +49,24 @@ void save_value_to_file(int number, const std::string& file_path) {
     }
 }
 
-int read_value_from_file(const std::string& file_path) {
-    int value = 0;
-    std::ifstream file(file_path);
-    if (file.is_open()) {
-        file >> value;
-        file.close();
-    } else {
-        // If file not found, create the file with default value
-        std::ofstream new_file(file_path);
-        if (new_file.is_open()) {
-            new_file << value;
-            new_file.close();
-        } else {
-            throw std::runtime_error("Unable to open file for writing.");
-        }
-    }
-    return value;
-}
+// int read_value_from_file(const std::string& file_path) {
+//     int value = 0;
+//     std::ifstream file(file_path);
+//     if (file.is_open()) {
+//         file >> value;
+//         file.close();
+//     } else {
+//         // If file not found, create the file with default value
+//         std::ofstream new_file(file_path);
+//         if (new_file.is_open()) {
+//             new_file << value;
+//             new_file.close();
+//         } else {
+//             throw std::runtime_error("Unable to open file for writing.");
+//         }
+//     }
+//     return value;
+// }
 
 // ##### ========== ---------- DMKE ----------  ========== #### //
 // ACTION //
@@ -100,6 +100,12 @@ public:
         return false;
     }
 
+    if (!getInput("node_id", goal.node_id)) {
+        RCLCPP_ERROR(node_->get_logger(), "Failed to get node_id from input port");
+        return false;
+    }
+
+    RCLCPP_INFO(node_->get_logger(), "Using value for 'node_id': %d", goal.node_id);
     RCLCPP_INFO(node_->get_logger(), "Using value for 'target_position': %u", goal.target_position);
 
     // Return true, indicating successful goal setting
@@ -494,10 +500,10 @@ public:
         RCLCPP_INFO(node_->get_logger(), "Average center distance : %g m", avrg_val);
         RCLCPP_INFO(node_->get_logger(), "NUMBER OF CYCLES FOR CLIMBING : %d", climb_Steps);
         // n = climb_Steps;
-        int nx = climb_Steps * 5;
-        int ny = climb_Steps * 6;
-        save_value_to_file(nx, "NumofStepsUP.txt");
-        save_value_to_file(ny, "NumofStepsDOWN.txt");
+        int nxy = climb_Steps * 6;
+        // int ny = climb_Steps * 6;
+        save_value_to_file(nxy, "NumofStepsUP.txt");
+        save_value_to_file(nxy, "NumofStepsDOWN.txt");
         count = 0;  // Reset count for next execution
         new_val = 0;  // Reset new_val for next execution
         setOutput("climb_steps", climb_Steps);
@@ -580,8 +586,10 @@ public:
 
             else
             {
-              int smth1 = (floor(content1 / 5) * 6);
-              int smth2 = content1 % 5;
+              // int smth1 = (floor(content1 / 5) * 6);
+              // int smth2 = content1 % 5;
+              int smth1 = floor(content2 / 6);
+                int smth2 = content1 % 6;
               int smth3 = smth1 + smth2 - 1;
 
               setOutput("home_climbsteps", smth3);
@@ -594,26 +602,51 @@ public:
 };
 
 
+class AskForHelp : public AlwaysSuccessNode {
+public:
+    AskForHelp(const std::string& name)
+        : AlwaysSuccessNode(name) {}
+
+    // static PortsList providedPorts()
+    // {
+    //     // return { OutputPort<int>("home_climbsteps")};
+    // }
+
+    BT::NodeStatus tick() override
+    {
+        rclcpp::shutdown();
+        
+        return NodeStatus::SUCCESS;
+    }
+    
+};
+
+
+
 
 static const char* xml_text = R"(
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4">
-  <BehaviorTree ID="New0HDJIC">
+  <BehaviorTree ID="ClampTest_SINGLE">
     <Fallback>
       <Repeat num_cycles="3">
         <Sequence>
-          <SubTree ID="OpenUC&amp;LC"/>
+          <SubTree ID="OpenUC&LC"/>
           <Fallback>
-            <DMKEGetPos node_id="3"
-                        next_pos="0"/>
-            <DMKESetPosition node_id="3"
-                             target_position="0"/>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        target_pos="500000"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="500000"/>
           </Fallback>
           <Fallback>
             <DMKEGetPos node_id="2"
-                        next_pos="0"/>
+                        service_name="/get_position"
+                        target_pos="10000"/>
             <DMKESetPosition node_id="2"
-                             target_position="0"/>
+                             action_name="/set_position"
+                             target_position="10000"/>
           </Fallback>
         </Sequence>
       </Repeat>
@@ -621,48 +654,114 @@ static const char* xml_text = R"(
     </Fallback>
   </BehaviorTree>
 
-  <BehaviorTree ID="OpenUC&amp;LC">
+  <BehaviorTree ID="OpenUC&LC">
     <Fallback>
       <Sequence>
         <Fallback>
           <DMKEGetPos node_id="2"
-                      next_pos="550000"/>
+                      service_name="/get_position"
+                      target_pos="500000"/>
           <DMKESetPosition node_id="2"
-                           target_position="550000"/>
+                           action_name="/set_position"
+                           target_position="500000"/>
         </Fallback>
         <Fallback>
-          <DMKEGetPos node_id="3"
-                      next_pos="550000"/>
-          <DMKESetPosition node_id="3"
-                           target_position="550000"/>
+          <DMKEGetPos node_id="2"
+                      service_name="/get_position"
+                      target_pos="0"/>
+          <DMKESetPosition node_id="2"
+                           action_name="/set_position"
+                           target_position="10000"/>
         </Fallback>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
   </BehaviorTree>
 
-  <!-- Description of Node Models (used by Groot) -->
-  <TreeNodesModel>
-    <Action ID="DMKEGetPos"
-            editable="true">
-      <input_port name="node_id"/>
-      <input_port name="service_name"
-                  default="/get_position"/>
-      <input_port name="next_pos"/>
-    </Action>
-    <Action ID="DMKESetPosition"
-            editable="true">
-      <input_port name="node_id"/>
-      <input_port name="action_name"
-                  default="/set_position"/>
-      <input_port name="target_position"/>
-    </Action>
-  </TreeNodesModel>
-
 </root>
 )";
 
+// <!-- Description of Node Models (used by Groot) -->
+//   <TreeNodesModel>
+//     <Action ID="DMKEGetPos"
+//             editable="true">
+//       <input_port name="node_id"/>
+//       <input_port name="service_name"
+//                   default="/get_position"/>
+//       <input_port name="next_pos"/>
+//     </Action>
+//     <Action ID="DMKESetPosition"
+//             editable="true">
+//       <input_port name="node_id"/>
+//       <input_port name="action_name"
+//                   default="/set_position"/>
+//       <input_port name="target_position"/>
+//     </Action>
+//   </TreeNodesModel>
 
+// <root BTCPP_format="4">
+//   <BehaviorTree ID="New0HDJIC">
+//     <Fallback>
+//       <Repeat num_cycles="3">
+//         <Sequence>
+//           <SubTree ID="OpenUC&amp;LC"/>
+//           <Fallback>
+//             <DMKEGetPos node_id="3"
+//                         next_pos="0"/>
+//             <DMKESetPosition node_id="3"
+//                              target_position="0"/>
+//           </Fallback>
+//           <Fallback>
+//             <DMKEGetPos node_id="2"
+//                         next_pos="0"/>
+//             <DMKESetPosition node_id="2"
+//                              target_position="0"/>
+//           </Fallback>
+//         </Sequence>
+//       </Repeat>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <BehaviorTree ID="OpenUC&amp;LC">
+//     <Fallback>
+//       <Sequence>
+//         <Fallback>
+//           <DMKEGetPos node_id="2"
+//                       next_pos="550000"/>
+//           <DMKESetPosition node_id="2"
+//                            target_position="550000"/>
+//         </Fallback>
+//         <Fallback>
+//           <DMKEGetPos node_id="3"
+//                       next_pos="550000"/>
+//           <DMKESetPosition node_id="3"
+//                            target_position="550000"/>
+//         </Fallback>
+//       </Sequence>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <!-- Description of Node Models (used by Groot) -->
+//   <TreeNodesModel>
+//     <Action ID="DMKEGetPos"
+//             editable="true">
+//       <input_port name="node_id"/>
+//       <input_port name="service_name"
+//                   default="/get_position"/>
+//       <input_port name="next_pos"/>
+//     </Action>
+//     <Action ID="DMKESetPosition"
+//             editable="true">
+//       <input_port name="node_id"/>
+//       <input_port name="action_name"
+//                   default="/set_position"/>
+//       <input_port name="target_position"/>
+//     </Action>
+//   </TreeNodesModel>
+
+// </root>
 
 // <root BTCPP_format="4">
 //   <BehaviorTree ID="ROSwithBT_test1">
@@ -690,54 +789,6 @@ static const char* xml_text = R"(
 // </root>
 
 
-
-
-// <root BTCPP_format="4">
-//   <BehaviorTree ID="ROSwithBT_test1">
-//     <Repeat num_cycles="2">
-//       <Sequence>
-//         <Delay delay_msec="3000">
-//           <DMKESetPosition action_name="/set_position" target_position="500000"/>
-//         </Delay>
-//         <Delay delay_msec="3000">
-//           <DMKESetPosition action_name="/set_position" target_position="0"/>
-//         </Delay>
-//       </Sequence>
-//     </Repeat>
-//   </BehaviorTree>
-//   <TreeNodesModel/>
-// </root>
-// )";
-
-// <?xml version="1.0" encoding="UTF-8"?>
-// <root BTCPP_format="4">
-//   <BehaviorTree ID="ROSwithBT_test1">
-//     <Repeat num_cycles="3">
-//       <Sequence>
-//         <Delay delay_msec="3000">
-//           <Fallback>
-//             <GetPosition service_name="/get_position" SupposedPosition="0"/>
-//             <DMKESetPosition action_name="/set_position" target_position="500000"/>
-//           </Fallback>
-//         </Delay>
-//         <Delay delay_msec="3000">
-//           <Fallback>
-//             <GetPosition service_name="/get_position" SupposedPosition="500000"/>
-//             <DMKESetPosition action_name="/set_position" target_position="0"/>
-//           </Fallback>
-//         </Delay>
-//       </Sequence>
-//     </Repeat>
-//   </BehaviorTree>
-
-//   <!-- Description of Node Models (used by Groot) -->
-//   <TreeNodesModel/>
-
-// </root>
-
-
-
-
 int main(int argc, char **argv)
 {
   rclcpp::init(argc, argv);
@@ -751,14 +802,19 @@ int main(int argc, char **argv)
   // setpos_params.default_port_value = "set_position_server";
 
   factory.registerNodeType<DMKESetPosition>("DMKESetPosition", setpos_params);
-  factory.registerNodeType<DMKEGetPosition>("GetPos", setpos_params);
+  factory.registerNodeType<DMKEGetPosition>("DMKEGetPos", setpos_params);
   factory.registerNodeType<CylinderSetExtension>("CylinderSetExt", setpos_params);
   factory.registerNodeType<CylinderGetExtension>("GetExt", setpos_params);
   factory.registerNodeType<HeightDetection>("HeightDetection", setpos_params);
+  factory.registerNodeType<CheckPLS>("CheckPLS");
+  factory.registerNodeType<AskForHelp>("AskForHelp");
   // factory.registerNodeType<DMKEGetPosService>("GetPosition", params);
 
   // Create the behavior tree using the XML description
-  auto tree = factory.createTreeFromText(xml_text);
+  // auto tree = factory.createTreeFromText(xml_text);
+
+  factory.registerBehaviorTreeFromText(xml_text);
+  auto tree = factory.createTree("ClampTest_SINGLE");
 
   // Run the behavior tree until it finishes
   tree.tickWhileRunning();
@@ -766,30 +822,5 @@ int main(int argc, char **argv)
   rclcpp::spin(bt_node);
   rclcpp::shutdown();
   return 0;
-
-  // Create node
-  // rclcpp::init(argc, argv);
-  // auto bt_server_node = std::make_shared<ArmBtServer>("arm_bt_server");
-
-  // // Create BT factory
-  // BehaviorTreeFactory factory;
-  // RosNodeParams bt_server_params; 
-  // bt_server_params.nh = bt_server_node;
-
-  // // Registor tree nodes
-  // factory.registerNodeType<GetPositionService>("GetPositionService", bt_server_params);
-  // factory.registerNodeType<SetPositionAction>("SetPositionAction", bt_server_params);
-  // factory.registerNodeType<InverseKinematicsService>("InverseKinematicsService", bt_server_params);
-
-  // // Create the behavior tree using the XML description
-  // Tree home_tree = factory.createTreeFromText(home_xml);
-  // Tree target_tree = factory.createTreeFromText(target_xml);
-  // bt_server_node->set_tree(ArmBtServer::BtType::HOME, &home_tree);
-  // bt_server_node->set_tree(ArmBtServer::BtType::TARGET, &target_tree);
-
-  // // Spin
-  // rclcpp::spin(bt_server_node);
-  // rclcpp::shutdown();
-  // return 0;
 
 }

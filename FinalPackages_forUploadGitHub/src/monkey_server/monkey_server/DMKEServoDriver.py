@@ -22,20 +22,21 @@ class DMKEServoDriver:
     """Driver class for ZeroErr servo motors"""
 
     def __init__(self, network:canopen.Network, node_id) -> None:
-        """Initialize ZeroErr servo node in CANopen network.
+        """Initialize DMKE servo node in CANopen network.
 
         Args:
             network (canopen.Network): Target CANopen network.
             node_id (int): CANopen node ID of the servo.
         """
         # self.node = network.add_node(node_id, f'DCHCAN.eds')
-        self.node = network.add_node(node_id, '/home/bky/my_monkey/src/dmke_package/dmke_package/DCHCAN.eds')
+
         # self.node.nmt.state = 'PRE-OPERATIONAL'
 
         # Set operation mode
         try:
-            print("Activate NMT Operation Mode")
-            self.NMT_Start()
+            self.node = network.add_node(node_id, '/home/mon3/FinalPackages2/src/monkey_server/monkey_server/DCHCAN.eds')
+            print("Node Initialized:)")
+            # self.NMT_Start()
 
         except canopen.sdo.SdoCommunicationError:
             # TODO: Control mode not set

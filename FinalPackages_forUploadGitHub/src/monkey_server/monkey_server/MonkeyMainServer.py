@@ -18,6 +18,76 @@ x = 0
 n = 0
 y = 0
 
+
+def save_value_to_file(number, file_path):
+    if not isinstance(number, float):
+        raise ValueError("Input must be a float.")
+        # print("Input not integer...Saving as 0")
+    with open(file_path, 'w') as file:
+        file.write(str(number))
+
+def read_value_from_file(file_path):
+    # default_value = 0
+    try:
+        with open(file_path, 'r') as file:
+            data = file.read().strip()
+            return float(data)
+    
+    except (ValueError, FileNotFoundError):
+        # If file not found, create the file with default value
+        with open(file_path, 'w') as file:
+            file.write(str(0))
+        return 0
+                
+def save_integer_to_file(number, file_path):
+        if not isinstance(number, int):
+            raise ValueError("Input must be an integer.")
+            # print("Input not integer...Saving as 0")
+
+        with open(file_path, 'w') as file:
+            file.write(str(number))
+
+def read_integer_from_file(file_path):
+    # default_value = 0
+    try:
+        with open(file_path, 'r') as file:
+            data = file.read().strip()
+            return int(data)
+    except (ValueError, FileNotFoundError):
+        # If file not found, create the file with default value
+        with open(file_path, 'w') as file:
+            file.write(str(0))
+        return 0
+    
+def dmke_save_filepath(node_id):
+    if node_id == 2:
+        position_data_filepath = 'dmke_UC_pos.txt'
+    elif node_id == 3:
+        position_data_filepath = 'dmke_LC_pos.txt'
+
+    return position_data_filepath
+
+def checkNoS():
+    nx = read_integer_from_file("NumofStepsUP.txt")
+    ny = read_integer_from_file("NumofStepsDOWN.txt")
+    
+    if nx != 0:
+        nx -= 1
+        save_integer_to_file(nx, "NumofStepsUP.txt")
+    elif nx == 0:
+        if ny != 0:
+            ny -= 1
+            save_integer_to_file(ny, "NumofStepsDOWN.txt")
+        elif ny == 0:
+            nx = 0
+            ny = 0
+            save_integer_to_file(nx, "NumofStepsUP.txt")
+            save_integer_to_file(ny, "NumofStepsDOWN.txt")
+        
+
+
+
+
 ##### ========== ---------- DMKE ----------  ========== ####
 
 # SERVICE #
@@ -30,8 +100,8 @@ class DMKECheckPositionService(Node):
 
 
     def get_position_callback(self, request, response):
-        node_id = request.node_id.to_bytes(1, byteorder='little')
-        response.position = read_integer_from_file(dmke_save_filepath(node_id))                                           # CHANGE
+        self.node_id = request.node_id
+        response.position = read_integer_from_file(dmke_save_filepath(self.node_id))                                    # CHANGE
         # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
 
         return response
@@ -51,13 +121,13 @@ class DMKESetPositionServer(Node):
 
         self.network = canopen.Network()
         self.network.connect(interface='seeedstudio', 
-                             channel='/dev/ttyS0', 
+                             channel='/dev/ttyUSB0', 
                              baudrate=115200, 
                              bitrate=500000)
 
         time.sleep(1)
         self.uc = DMKEServoDriver(self.network, 2)
-        self.lc = DMKEServoDriver(self.network, 3)
+        # self.lc = DMKEServoDriver(self.network, 3)
 
         # self.uc.NMT_Reset_Node()
         self.uc.NMT_Reset_Comm()
@@ -68,18 +138,18 @@ class DMKESetPositionServer(Node):
         time.sleep(1)
 
         # self.lc.NMT_Reset_Node()
-        self.lc.NMT_Reset_Comm()
+        # self.lc.NMT_Reset_Comm()
 
-        self.lc.NMT_Pre_Op()
-        self.lc.NMT_Start()
+        # self.lc.NMT_Pre_Op()
+        # self.lc.NMT_Start()
         time.sleep(1)
 
         self.uc.enable()
-        self.lc.enable()
+        # self.lc.enable()
 
         print("Setting positional control mode")
         self.uc.set_pos_control_mode()
-        self.lc.set_pos_control_mode()
+        # self.lc.set_pos_control_mode()
         time.sleep(2)
 
         print("Setting Parameters for position control mode")
@@ -87,9 +157,9 @@ class DMKESetPositionServer(Node):
         self.uc.set_profile_acceleration(10000)
         self.uc.set_profile_deceleration(10000)
 
-        self.lc.set_profile_velocity(2000)
-        self.lc.set_profile_acceleration(10000)
-        self.lc.set_profile_deceleration(10000)
+        # self.lc.set_profile_velocity(2000)
+        # self.lc.set_profile_acceleration(10000)
+        # self.lc.set_profile_deceleration(10000)
         time.sleep(2)
             
 
@@ -99,7 +169,7 @@ class DMKESetPositionServer(Node):
     def execute_callback(self, goal_handle):
         self.get_logger().info('Received goal: Move motor to position %d' % goal_handle.request.target_position)
         
-        node_id = goal_handle.request.node_id.to_bytes(1, byteorder='little')
+        self.node_id = goal_handle.request.node_id
         target_position = goal_handle.request.target_position
 
         # self.network = canopen.Network()
@@ -107,11 +177,11 @@ class DMKESetPositionServer(Node):
         #                      channel='/dev/ttyS0', 
         #                      baudrate=115200, 
         #                      bitrate=500000)
-
-        self.motor = DMKEServoDriver(self.network, node_id)
+        filepathx = dmke_save_filepath(self.node_id)
+        self.motor = DMKEServoDriver(self.network, self.node_id)
 
         # Move to target position
-        real_target1 = self.real_pos(self.motor, target_position, dmke_save_filepath(node_id))
+        real_target1 = self.real_pos(self.motor, target_position, filepathx)
 
         print(f"Setting Target position to {target_position}")
         
@@ -126,7 +196,8 @@ class DMKESetPositionServer(Node):
         # pospos = real_pos + c1.read_actual_pos()
         # save_integer_to_file(pospos, 'dmke_encoder_pos.txt')
         # input = check_pos(c1, 'dmke_encoder_pos.txt')
-        self.monitor_position(goal_handle, self.motor, dmke_save_filepath(node_id))
+        
+        self.monitor_position(goal_handle, self.motor, filepathx)
         # count += 1
 
         time.sleep(2)
@@ -136,7 +207,7 @@ class DMKESetPositionServer(Node):
         # self.c1.NMT_Pre_Op()
         # time.sleep(2)
 
-        data_from_file = self.read_integer_from_file(dmke_save_filepath(node_id))
+        data_from_file = read_integer_from_file(filepathx)
         # Determine the success of the action
         success = abs(target_position - data_from_file) <= 5000
 
@@ -163,7 +234,8 @@ class DMKESetPositionServer(Node):
         goal_handle.canceled()
 
     def real_pos(self, instance, target_pos, file_path):
-        starting_pos = self.read_integer_from_file(file_path)
+        
+        starting_pos = read_integer_from_file(file_path)
         read_pos = instance.read_actual_pos()
 
         if starting_pos - 5000 <= read_pos <= starting_pos + 5000:
@@ -178,7 +250,26 @@ class DMKESetPositionServer(Node):
         print(f"Current Position: {starting_pos}")
         real_target = read_pos + (target_pos - starting_pos)
         return real_target
+    
+    # def save_integer_to_file(number, file_path):
+    #     if not isinstance(number, int):
+    #         raise ValueError("Input must be an integer.")
+    #         # print("Input not integer...Saving as 0")
 
+    #     with open(file_path, 'w') as file:
+    #         file.write(str(number))
+
+    # def read_integer_from_file(file_path):
+    #     # default_value = 0
+    #     try:
+    #         with open(file_path, 'r') as file:
+    #             data = file.read().strip()
+    #             return int(data)
+    #     except (ValueError, FileNotFoundError):
+    #         # If file not found, create the file with default value
+    #         with open(file_path, 'w') as file:
+    #             file.write(str(0))
+    #         return 0
 
     def monitor_position(self, goal_handle, instance, filepath, threshold=50, interval=0.1):
         """
@@ -192,7 +283,7 @@ class DMKESetPositionServer(Node):
         - interval (optional): The time interval (in seconds) between position
                                readings. Defaults to 0.2 seconds.
         """
-
+    
         prev_pos = instance.read_actual_pos()
         # print(f"Position from Motor's Perspective {prev_pos}")
         error_count = 0  # Initialize error count
@@ -268,42 +359,42 @@ class CylinderSetExtension(Node):
         super().__init__('cylinder_action_server')
 
         # Declare action server
-        self.action_server = ActionServer(self, SetExtension, 'SetExtension', self.action_callback)
+        # self.action_server = ActionServer(self, SetExtension, 'SetExtension', self.action_callback)
 
-        # Start message
-        self.get_logger().info(f"SetExtension Server started")
+        # # Start message
+        # self.get_logger().info(f"SetExtension Server started")
 
-        self.declare_parameter('can_id', 1,
-        ParameterDescriptor(description='CAN ID of the target driver.'))
-        self.declare_parameter('can_channel', '/dev/ttyS0',
-            ParameterDescriptor(description='Channel of CAN tranceiver.'))
-        self.declare_parameter('can_baudrate', 2000000,
-            ParameterDescriptor(description='Baudrate of USB communication.'))
-        self.declare_parameter('can_bitrate', 500000,
-            ParameterDescriptor(description='Bitrate of CAN communication bus in bit/s.'))
+        # self.declare_parameter('can_id', 1,
+        # ParameterDescriptor(description='CAN ID of the target driver.'))
+        # self.declare_parameter('can_channel', '/dev/ttyS0',
+        #     ParameterDescriptor(description='Channel of CAN tranceiver.'))
+        # self.declare_parameter('can_baudrate', 2000000,
+        #     ParameterDescriptor(description='Baudrate of USB communication.'))
+        # self.declare_parameter('can_bitrate', 500000,
+        #     ParameterDescriptor(description='Bitrate of CAN communication bus in bit/s.'))
 
-        # Get parameters
-        self.can_id = self.get_parameter('can_id').value
-        can_channel = self.get_parameter('can_channel').value
-        baudrate = self.get_parameter('can_baudrate').value
-        bitrate = self.get_parameter('can_bitrate').value
+        # # Get parameters
+        # self.can_id = self.get_parameter('can_id').value
+        # can_channel = self.get_parameter('can_channel').value
+        # baudrate = self.get_parameter('can_baudrate').value
+        # bitrate = self.get_parameter('can_bitrate').value
 
-        # Create CAN connection
-        bus = can.ThreadSafeBus(
-            interface='seeedstudio', channel=can_channel, baudrate=baudrate, bitrate=bitrate
-            # interface='socketcan', channel='can0', bitrate=500000
-        )
+        # # Create CAN connection
+        # bus = can.ThreadSafeBus(
+        #     interface='seeedstudio', channel=can_channel, baudrate=baudrate, bitrate=bitrate
+        #     # interface='socketcan', channel='can0', bitrate=500000
+        # )
 
-        time.sleep(0.5)
+        # time.sleep(0.5)
 
-        # Initialize driver
-        self.cylinder = IDSServoDriver(bus, self.can_id, name="Cylinder")
-        self.cylinder.fault_reset()
+        # # Initialize driver
+        # self.cylinder = IDSServoDriver(bus, self.can_id, name="Cylinder")
+        # self.cylinder.fault_reset()
 
-        time.sleep(0.5)
-        self.cylinder.set_positional_control_mode()
+        # time.sleep(0.5)
+        # self.cylinder.set_positional_control_mode()
 
-        self.get_logger().info('CYLINDER INITIALIZED')
+        # self.get_logger().info('CYLINDER INITIALIZED')
 
 
     def action_callback(self, goal_handle:ServerGoalHandle, filepath='saved_extension.txt', interval=0.1, threshold=0.05):
@@ -456,71 +547,7 @@ class CheckExtensionService(Node):
         return response
     
     
-def save_value_to_file(number, file_path):
-    if not isinstance(number, float):
-        raise ValueError("Input must be a float.")
-        # print("Input not integer...Saving as 0")
-    with open(file_path, 'w') as file:
-        file.write(str(number))
 
-def read_value_from_file(file_path):
-    # default_value = 0
-    try:
-        with open(file_path, 'r') as file:
-            data = file.read().strip()
-            return float(data)
-    
-    except (ValueError, FileNotFoundError):
-        # If file not found, create the file with default value
-        with open(file_path, 'w') as file:
-            file.write(str(0))
-        return 0
-                
-def save_integer_to_file(number, file_path):
-        if not isinstance(number, int):
-            raise ValueError("Input must be an integer.")
-            # print("Input not integer...Saving as 0")
-
-        with open(file_path, 'w') as file:
-            file.write(str(number))
-
-def read_integer_from_file(file_path):
-    # default_value = 0
-    try:
-        with open(file_path, 'r') as file:
-            data = file.read().strip()
-            return int(data)
-    except (ValueError, FileNotFoundError):
-        # If file not found, create the file with default value
-        with open(file_path, 'w') as file:
-            file.write(str(0))
-        return 0
-    
-def dmke_save_filepath(node_id):
-    if node_id == 2:
-        position_data_filepath = 'dmke_UC_pos.txt'
-    elif node_id == 3:
-        position_data_filepath = 'dmke_LC_pos.txt'
-
-    return position_data_filepath
-
-def checkNoS():
-    nx = read_integer_from_file("NumofStepsUP.txt")
-    ny = read_integer_from_file("NumofStepsDOWN.txt")
-    
-    if nx != 0:
-        nx -= 1
-        save_integer_to_file(nx, "NumofStepsUP.txt")
-    elif nx == 0:
-        if ny != 0:
-            ny -= 1
-            save_integer_to_file(ny, "NumofStepsDOWN.txt")
-        elif ny == 0:
-            nx = 0
-            ny = 0
-            save_integer_to_file(nx, "NumofStepsUP.txt")
-            save_integer_to_file(ny, "NumofStepsDOWN.txt")
-        
 
 def main(args=None):
     rclpy.init(args=args)

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4">
-  <BehaviorTree ID="ClampTest">
+  <BehaviorTree ID="ClampTest_SINGLE">
     <Fallback>
       <Repeat num_cycles="3">
         <Sequence>
           <SubTree ID="OpenUC&amp;LC"/>
           <Fallback>
-            <DMKEGetPos node_id="3"
+            <DMKEGetPos node_id="2"
                         service_name="/get_position"
-                        next_pos="0"/>
-            <DMKESetPosition node_id="3"
+                        next_pos="550000"/>
+            <DMKESetPosition node_id="2"
                              action_name="/set_position"
-                             target_position="0"/>
+                             target_position="550000"/>
           </Fallback>
           <Fallback>
             <DMKEGetPos node_id="2"
@@ -39,12 +39,12 @@
                            target_position="550000"/>
         </Fallback>
         <Fallback>
-          <DMKEGetPos node_id="3"
+          <DMKEGetPos node_id="2"
                       service_name="/get_position"
-                      next_pos="550000"/>
-          <DMKESetPosition node_id="3"
+                      next_pos="0"/>
+          <DMKESetPosition node_id="2"
                            action_name="/set_position"
-                           target_position="550000"/>
+                           target_position="0"/>
         </Fallback>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
