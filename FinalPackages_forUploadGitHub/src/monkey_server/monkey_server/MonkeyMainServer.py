@@ -100,8 +100,9 @@ class DMKECheckPositionService(Node):
 
 
     def get_position_callback(self, request, response):
-        self.node_id = request.node_id
-        response.position = read_integer_from_file(dmke_save_filepath(self.node_id))                                    # CHANGE
+        serv_node_id = request.node_id
+        file_to_read = dmke_save_filepath(serv_node_id)
+        response.position = read_integer_from_file(file_to_read)                                    # CHANGE
         # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
 
         return response
@@ -169,7 +170,7 @@ class DMKESetPositionServer(Node):
     def execute_callback(self, goal_handle):
         self.get_logger().info('Received goal: Move motor to position %d' % goal_handle.request.target_position)
         
-        self.node_id = goal_handle.request.node_id
+        action_node_id = goal_handle.request.node_id
         target_position = goal_handle.request.target_position
 
         # self.network = canopen.Network()
@@ -177,8 +178,8 @@ class DMKESetPositionServer(Node):
         #                      channel='/dev/ttyS0', 
         #                      baudrate=115200, 
         #                      bitrate=500000)
-        filepathx = dmke_save_filepath(self.node_id)
-        self.motor = DMKEServoDriver(self.network, self.node_id)
+        filepathx = dmke_save_filepath(action_node_id)
+        self.motor = DMKEServoDriver(self.network, action_node_id)
 
         # Move to target position
         real_target1 = self.real_pos(self.motor, target_position, filepathx)
@@ -208,13 +209,17 @@ class DMKESetPositionServer(Node):
         # time.sleep(2)
 
         data_from_file = read_integer_from_file(filepathx)
+        read_current = self.motor.read_actual_current()
+        
         # Determine the success of the action
-        success = abs(target_position - data_from_file) <= 5000
+        if abs(target_position - data_from_file) <= 5000 or read_current >= 4500:
+            dmke_condition = True
+        # success = abs(target_position - data_from_file) <= 5000
 
         # Create the result message
         result = SetPosition.Result()
         
-        result.success_pos = success
+        result.success_pos = dmke_condition
 
         if result.success_pos:
             self.get_logger().info('Motor reached target position')
