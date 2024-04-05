@@ -113,6 +113,8 @@ class SetPositionActionServer(Node):
         #     data_from_file = 0
         
         # else:
+        if abs(target_position - data_from_file) <= 5000 or current:
+            success = True
         success = abs(target_position - data_from_file) <= 5000
 
         # Create the result message
@@ -212,7 +214,7 @@ class SetPositionActionServer(Node):
 
 
     # Threshold = 50 with Interval = 0.1 for 10000rps2 accel and decel
-    def monitor_position(self, goal_handle, instance, filepath, threshold=50, interval=0.1):
+    def monitor_position(self, goal_handle, instance, filepath, threshold=50, interval=0.05):
         """
         Monitors the position of a servo motor continuously until the change
         in position is less than the specified threshold.
@@ -271,6 +273,18 @@ class SetPositionActionServer(Node):
                             file_pos = self.read_integer_from_file(filepath) + x
                             self.save_integer_to_file(file_pos, filepath)
                         
+                        print(actual_pos)
+                        break
+
+                    elif read_current >= 4500:
+                        x = abs(actual_pos - prev_pos)
+                        if actual_pos < prev_pos:
+                            file_pos = self.read_integer_from_file(filepath) - x
+                            self.save_integer_to_file(file_pos, filepath)
+                        elif actual_pos > prev_pos:
+                            file_pos = self.read_integer_from_file(filepath) + x
+                            self.save_integer_to_file(file_pos, filepath)
+                            
                         print(actual_pos)
                         break
 
