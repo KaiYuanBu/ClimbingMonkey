@@ -179,7 +179,7 @@ class CylinderServer(Node):
         error_count = 0  # Initialize error count
         feedback_msg = SetExtension.Feedback()
 
-        while self.driver.is_running:
+        while instance.is_running:
             time.sleep(interval)
             try:
                 # Read the actual extension
