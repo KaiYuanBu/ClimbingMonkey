@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="GetPosTest">
+    <Repeat num_cycles="2">
+      <Sequence>
+        <DMKEGetPos node_id="2"
+                    service_name="/get_position"
+                    next_pos="0"/>
+        <DMKEGetPos node_id="2"
+                    service_name="/get_position"
+                    next_pos="0"/>
+      </Sequence>
+    </Repeat>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="DMKEGetPos"
+            editable="true">
+      <input_port name="node_id"/>
+      <input_port name="service_name"
+                  default="/get_position"/>
+      <input_port name="next_pos"/>
+    </Action>
+  </TreeNodesModel>
+
+</root>

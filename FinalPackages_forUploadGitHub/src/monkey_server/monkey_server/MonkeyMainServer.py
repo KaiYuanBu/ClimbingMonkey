@@ -61,9 +61,9 @@ def read_integer_from_file(file_path):
     
 def dmke_save_filepath(node_id):
     if node_id == 2:
-        position_data_filepath = 'dmke_UC_pos.txt'
+        position_data_filepath = "dmke_UC_pos.txt"
     elif node_id == 3:
-        position_data_filepath = 'dmke_LC_pos.txt'
+        position_data_filepath = "dmke_LC_pos.txt"
 
     return position_data_filepath
 
@@ -90,22 +90,22 @@ def checkNoS():
 
 ##### ========== ---------- DMKE ----------  ========== ####
 
-# SERVICE #
-class DMKECheckPositionService(Node):
+# # SERVICE #
+# class DMKECheckPositionService(Node):
 
-    def __init__(self):
-        super().__init__('check_position_service')
-        self.srv = self.create_service(GetPosition, 'get_position', self.get_position_callback)        # CHANGE
-        self.get_logger().info('GetPosition Server is ready!')
+#     def __init__(self):
+#         super().__init__('check_position_service')
+#         self.srv = self.create_service(GetPosition, 'get_position', self.get_position_callback)        # CHANGE
+#         self.get_logger().info('GetPosition Server is ready!')
 
 
-    def get_position_callback(self, request, response):
-        serv_node_id = request.node_id
-        file_to_read = dmke_save_filepath(serv_node_id)
-        response.position = read_integer_from_file(file_to_read)                                    # CHANGE
-        # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
+#     def get_position_callback(self, request, response):
+#         serv_node_id = request.node_id
+#         file_to_read = dmke_save_filepath(serv_node_id)
+#         response.positiongot = read_integer_from_file(file_to_read)                                    # CHANGE
+#         # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
 
-        return response
+#         return response
 
 # ACTION SERVER #
 class DMKESetPositionServer(Node):
@@ -119,6 +119,9 @@ class DMKESetPositionServer(Node):
             self.execute_callback,
             cancel_callback=self.cancel_callback
             )
+        
+        self.srv = self.create_service(GetPosition, 'get_position', self.get_position_callback)        # CHANGE
+        self.get_logger().info('GetPosition Server is ready!')
 
         self.network = canopen.Network()
         self.network.connect(interface='seeedstudio', 
@@ -136,14 +139,14 @@ class DMKESetPositionServer(Node):
         self.uc.NMT_Pre_Op()
         self.uc.NMT_Start()
 
-        time.sleep(1)
+        time.sleep(0.5)
 
         # self.lc.NMT_Reset_Node()
         # self.lc.NMT_Reset_Comm()
 
         # self.lc.NMT_Pre_Op()
         # self.lc.NMT_Start()
-        time.sleep(1)
+        time.sleep(0.5)
 
         self.uc.enable()
         # self.lc.enable()
@@ -151,17 +154,17 @@ class DMKESetPositionServer(Node):
         print("Setting positional control mode")
         self.uc.set_pos_control_mode()
         # self.lc.set_pos_control_mode()
-        time.sleep(2)
+        time.sleep(0.5)
 
         print("Setting Parameters for position control mode")
         self.uc.set_profile_velocity(2000)
-        self.uc.set_profile_acceleration(10000)
-        self.uc.set_profile_deceleration(10000)
+        self.uc.set_profile_acceleration(15000)
+        self.uc.set_profile_deceleration(15000)
 
         # self.lc.set_profile_velocity(2000)
         # self.lc.set_profile_acceleration(10000)
         # self.lc.set_profile_deceleration(10000)
-        time.sleep(2)
+        time.sleep(0.5)
             
 
         self.get_logger().info('DMKE SERVERS INITIALIZED')
@@ -171,6 +174,7 @@ class DMKESetPositionServer(Node):
         self.get_logger().info('Received goal: Move motor to position %d' % goal_handle.request.target_position)
         
         action_node_id = goal_handle.request.node_id
+        print(f"Action Node ID: {action_node_id}")
         target_position = goal_handle.request.target_position
 
         # self.network = canopen.Network()
@@ -186,8 +190,9 @@ class DMKESetPositionServer(Node):
 
         print(f"Setting Target position to {target_position}")
         
+        self.motor.enable()
         self.motor.set_target_location(real_target1)
-        time.sleep(2)
+        # time.sleep()
 
         print(f"Moving to position {target_position}")
         # print(f"Encoder Counts Left: {real_target1}")
@@ -201,19 +206,21 @@ class DMKESetPositionServer(Node):
         self.monitor_position(goal_handle, self.motor, filepathx)
         # count += 1
 
-        time.sleep(2)
+        # time.sleep(2)
         self.motor.disable
-        time.sleep(2)
+        time.sleep(0.5)
 
         # self.c1.NMT_Pre_Op()
         # time.sleep(2)
 
         data_from_file = read_integer_from_file(filepathx)
-        read_current = self.motor.read_actual_current()
+        # read_current = self.motor.read_actual_current()
         
         # Determine the success of the action
-        if abs(target_position - data_from_file) <= 5000 or read_current >= 4500:
+        if abs(target_position - data_from_file) <= 5000: #or read_current >= 4500:
             dmke_condition = True
+        else:
+            dmke_condition = False
         # success = abs(target_position - data_from_file) <= 5000
 
         # Create the result message
@@ -237,6 +244,15 @@ class DMKESetPositionServer(Node):
     def cancel_callback(self, goal_handle):
         self.get_logger().info('Goal canceled: Move motor to position %d' % goal_handle.request.target_position)
         goal_handle.canceled()
+
+
+    def get_position_callback(self, request, response):
+        serv_node_id = request.node_id
+        file_to_read = dmke_save_filepath(serv_node_id)
+        response.positiongot = read_integer_from_file(file_to_read)                                    # CHANGE
+        # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
+
+        return response
 
     def real_pos(self, instance, target_pos, file_path):
         
@@ -310,6 +326,7 @@ class DMKESetPositionServer(Node):
                         # save_integer_to_file(file_pos, filepath)
                         feedback_msg.current_position = file_pos
                         save_integer_to_file(file_pos, filepath)
+                        
 
                     elif actual_pos > prev_pos:
                         sub_pos = abs((prev_pos - actual_pos))
@@ -317,8 +334,9 @@ class DMKESetPositionServer(Node):
                         print(f"Actual position: {file_pos}")
                         feedback_msg.current_position = file_pos
                         save_integer_to_file(file_pos, filepath)
+                        
 
-                    goal_handle.publish_feedback(feedback_msg)
+                    
 
                     # Check if position has changed significantly
                     if abs(actual_pos - prev_pos) < threshold:
@@ -327,13 +345,16 @@ class DMKESetPositionServer(Node):
                         if actual_pos < prev_pos:
                             file_pos = read_integer_from_file(filepath) - x
                             save_integer_to_file(file_pos, filepath)
+                            
                         elif actual_pos > prev_pos:
                             file_pos = read_integer_from_file(filepath) + x
                             save_integer_to_file(file_pos, filepath)
+                            
                         
                         print(actual_pos)
                         break
-
+                    
+                    goal_handle.publish_feedback(feedback_msg)
                     prev_pos = actual_pos
 
                 else:
@@ -356,200 +377,200 @@ class DMKESetPositionServer(Node):
 
 
 ##### ========== ---------- CYLINDER ----------  ========== ####
-class CylinderSetExtension(Node):
-    """MonKey Arm cylinder control wrapper for IDSServoDriver."""
+# class CylinderSetExtension(Node):
+#     """MonKey Arm cylinder control wrapper for IDSServoDriver."""
 
-    def __init__(self):
-        """MonKey Arm cylinder control node."""
-        super().__init__('cylinder_action_server')
+#     def __init__(self):
+#         """MonKey Arm cylinder control node."""
+#         super().__init__('cylinder_action_server')
 
-        # Declare action server
-        # self.action_server = ActionServer(self, SetExtension, 'SetExtension', self.action_callback)
+#         # Declare action server
+#         self.action_server = ActionServer(self, SetExtension, 'SetExtension', self.action_callback)
 
-        # # Start message
-        # self.get_logger().info(f"SetExtension Server started")
+#         # Start message
+#         self.get_logger().info(f"SetExtension Server started")
 
-        # self.declare_parameter('can_id', 1,
-        # ParameterDescriptor(description='CAN ID of the target driver.'))
-        # self.declare_parameter('can_channel', '/dev/ttyS0',
-        #     ParameterDescriptor(description='Channel of CAN tranceiver.'))
-        # self.declare_parameter('can_baudrate', 2000000,
-        #     ParameterDescriptor(description='Baudrate of USB communication.'))
-        # self.declare_parameter('can_bitrate', 500000,
-        #     ParameterDescriptor(description='Bitrate of CAN communication bus in bit/s.'))
+#         self.declare_parameter('can_id', 1,
+#         ParameterDescriptor(description='CAN ID of the target driver.'))
+#         self.declare_parameter('can_channel', '/dev/ttyS0',
+#             ParameterDescriptor(description='Channel of CAN tranceiver.'))
+#         self.declare_parameter('can_baudrate', 2000000,
+#             ParameterDescriptor(description='Baudrate of USB communication.'))
+#         self.declare_parameter('can_bitrate', 500000,
+#             ParameterDescriptor(description='Bitrate of CAN communication bus in bit/s.'))
 
-        # # Get parameters
-        # self.can_id = self.get_parameter('can_id').value
-        # can_channel = self.get_parameter('can_channel').value
-        # baudrate = self.get_parameter('can_baudrate').value
-        # bitrate = self.get_parameter('can_bitrate').value
+#         # Get parameters
+#         self.can_id = self.get_parameter('can_id').value
+#         can_channel = self.get_parameter('can_channel').value
+#         baudrate = self.get_parameter('can_baudrate').value
+#         bitrate = self.get_parameter('can_bitrate').value
 
-        # # Create CAN connection
-        # bus = can.ThreadSafeBus(
-        #     interface='seeedstudio', channel=can_channel, baudrate=baudrate, bitrate=bitrate
-        #     # interface='socketcan', channel='can0', bitrate=500000
-        # )
+#         # Create CAN connection
+#         bus = can.ThreadSafeBus(
+#             interface='seeedstudio', channel=can_channel, baudrate=baudrate, bitrate=bitrate
+#             # interface='socketcan', channel='can0', bitrate=500000
+#         )
 
-        # time.sleep(0.5)
+#         time.sleep(0.5)
 
-        # # Initialize driver
-        # self.cylinder = IDSServoDriver(bus, self.can_id, name="Cylinder")
-        # self.cylinder.fault_reset()
+#         # Initialize driver
+#         self.cylinder = IDSServoDriver(bus, self.can_id, name="Cylinder")
+#         self.cylinder.fault_reset()
 
-        # time.sleep(0.5)
-        # self.cylinder.set_positional_control_mode()
+#         time.sleep(0.5)
+#         self.cylinder.set_positional_control_mode()
 
-        # self.get_logger().info('CYLINDER INITIALIZED')
+#         self.get_logger().info('CYLINDER INITIALIZED')
 
 
-    def action_callback(self, goal_handle:ServerGoalHandle, filepath='saved_extension.txt', interval=0.1, threshold=0.05):
-        """Callback for set extension action."""
-        self.get_logger().info("Executing goal...")
+#     def action_callback(self, goal_handle:ServerGoalHandle, filepath='saved_extension.txt', interval=0.1, threshold=0.05):
+#         """Callback for set extension action."""
+#         self.get_logger().info("Executing goal...")
 
-        # self.driver.set_positional_control_mode()
+#         # self.driver.set_positional_control_mode()
         
-        self.driver.set_extension(goal_handle.request.target_extension, 8, False)
-        # actual_ext = self.driver.extension_feedback()
+#         self.driver.set_extension(goal_handle.request.target_extension, 8, False)
+#         # actual_ext = self.driver.extension_feedback()
         
-        self.monitor_extension(goal_handle, self.driver, filepath, message=self.bus.recv())  
+#         self.monitor_extension(goal_handle, self.driver, filepath, message=self.bus.recv())  
 
-        checkNoS()
+#         checkNoS()
 
-        # self.driver.disable()
+#         # self.driver.disable()
 
-        result = SetExtension.Result()
+#         result = SetExtension.Result()
 
-        data_from_file2 = read_value_from_file('saved_extension.txt')
-        success2 = abs(goal_handle.request.target_extension - data_from_file2) <= 0.1
+#         data_from_file2 = read_value_from_file('saved_extension.txt')
+#         success2 = abs(goal_handle.request.target_extension - data_from_file2) <= 0.1
 
-        # Create the result message
-        result = SetPosition.Result()
+#         # Create the result message
+#         result = SetPosition.Result()
         
-        result.success_ext = success2
+#         result.success_ext = success2
 
-        if success2:
-            self.get_logger().info('Motor reached target position')
-            goal_handle.succeed()
+#         if success2:
+#             self.get_logger().info('Motor reached target position')
+#             goal_handle.succeed()
             
-            checkNoS()
+#             checkNoS()
             
-        else:
-            self.get_logger().info('Motor failed to reach target position')
-            goal_handle.abort()
+#         else:
+#             self.get_logger().info('Motor failed to reach target position')
+#             goal_handle.abort()
 
-        return result
+#         return result
 
-    def real_ext(self, instance, target_ext, file_path):
-        starting_ext = self.read_value_from_file(file_path)
-        read_ext = instance.read_actual_ext()
-
-
-        if starting_ext - 0.1 <= read_ext <= starting_ext + 0.1:
-            starting_ext = read_ext
-
-        if not (starting_ext - 0.1 <= read_ext <= starting_ext + 0.1):
-            starting_ext = starting_ext
-
-        if read_ext is None:
-            starting_ext = starting_ext
-
-        print(f"Current extition: {starting_ext}")
-        real_target_ext = read_ext + (target_ext - starting_ext)
-        return real_target_ext
+#     def real_ext(self, instance, target_ext, file_path):
+#         starting_ext = self.read_value_from_file(file_path)
+#         read_ext = instance.read_actual_ext()
 
 
-    # Threshold = 50 with Interval = 0.1 for 10000rps2 accel and decel
-    def monitor_extension(self, goal_handle, instance, filepath, message, threshold=0.05, interval=0.1):
-        """
-        Monitors the extension of a servo motor continuously until the change
-        in extension is less than the specified threshold.
+#         if starting_ext - 0.1 <= read_ext <= starting_ext + 0.1:
+#             starting_ext = read_ext
 
-        Args:
-        - c1: The DMKEServoDriver2_V1 object for the servo motor.
-        - threshold (optional): The threshold for considering the change in
-                                extension significant. Defaults to 5.
-        - interval (optional): The time interval (in seconds) between extension
-                               readings. Defaults to 0.2 seconds.
-        """
+#         if not (starting_ext - 0.1 <= read_ext <= starting_ext + 0.1):
+#             starting_ext = starting_ext
 
-        prev_ext = instance.extension_feedback(message)
-        # print(f"extension from Motor's Perspective {prev_ext}")
-        error_count = 0  # Initialize error count
-        feedback_msg = SetExtension.Feedback()
+#         if read_ext is None:
+#             starting_ext = starting_ext
 
-        while self.driver.is_running:
-            time.sleep(interval)
-            try:
-                # Read the actual extension
-                actual_ext = instance.extension_feedback(message)
+#         print(f"Current extition: {starting_ext}")
+#         real_target_ext = read_ext + (target_ext - starting_ext)
+#         return real_target_ext
 
-                # Handle the case where actual_ext is a valid extension
-                if actual_ext is not None and prev_ext is not None:
 
-                    if actual_ext < prev_ext:
-                        sub_ext = abs((prev_ext - actual_ext))
-                        file_ext =self.read_value_from_file(filepath) - sub_ext
-                        print(f"Actual extension: {file_ext}")
-                        # save_value_to_file(file_ext, filepath)
-                        feedback_msg.current_extension = file_ext
-                        self.save_value_to_file(file_ext, filepath)
+#     # Threshold = 50 with Interval = 0.1 for 10000rps2 accel and decel
+#     def monitor_extension(self, goal_handle, instance, filepath, message, threshold=0.05, interval=0.1):
+#         """
+#         Monitors the extension of a servo motor continuously until the change
+#         in extension is less than the specified threshold.
 
-                    elif actual_ext > prev_ext:
-                        sub_ext = abs((prev_ext - actual_ext))
-                        file_ext = self.read_value_from_file(filepath) + sub_ext
-                        print(f"Actual extension: {file_ext}")
-                        feedback_msg.current_extension = file_ext
-                        self.save_value_to_file(file_ext, filepath)
+#         Args:
+#         - c1: The DMKEServoDriver2_V1 object for the servo motor.
+#         - threshold (optional): The threshold for considering the change in
+#                                 extension significant. Defaults to 5.
+#         - interval (optional): The time interval (in seconds) between extension
+#                                readings. Defaults to 0.2 seconds.
+#         """
 
-                    goal_handle.publish_feedback(feedback_msg)
+#         prev_ext = instance.extension_feedback(message)
+#         # print(f"extension from Motor's Perspective {prev_ext}")
+#         error_count = 0  # Initialize error count
+#         feedback_msg = SetExtension.Feedback()
 
-                    # Check if extension has changed significantly
-                    if abs(actual_ext - prev_ext) < threshold:
-                        # read_ext = instance.read_actual_ext()
-                        x = abs(actual_ext - prev_ext)
-                        if actual_ext < prev_ext:
-                            file_ext = self.read_value_from_file(filepath) - x
-                            self.save_value_to_file(file_ext, filepath)
-                        elif actual_ext > prev_ext:
-                            file_ext = self.read_value_from_file(filepath) + x
-                            self.save_value_to_file(file_ext, filepath)
+#         while self.driver.is_running:
+#             time.sleep(interval)
+#             try:
+#                 # Read the actual extension
+#                 actual_ext = instance.extension_feedback(message)
+
+#                 # Handle the case where actual_ext is a valid extension
+#                 if actual_ext is not None and prev_ext is not None:
+
+#                     if actual_ext < prev_ext:
+#                         sub_ext = abs((prev_ext - actual_ext))
+#                         file_ext =self.read_value_from_file(filepath) - sub_ext
+#                         print(f"Actual extension: {file_ext}")
+#                         # save_value_to_file(file_ext, filepath)
+#                         feedback_msg.current_extension = file_ext
+#                         self.save_value_to_file(file_ext, filepath)
+
+#                     elif actual_ext > prev_ext:
+#                         sub_ext = abs((prev_ext - actual_ext))
+#                         file_ext = self.read_value_from_file(filepath) + sub_ext
+#                         print(f"Actual extension: {file_ext}")
+#                         feedback_msg.current_extension = file_ext
+#                         self.save_value_to_file(file_ext, filepath)
+
+#                     goal_handle.publish_feedback(feedback_msg)
+
+#                     # Check if extension has changed significantly
+#                     if abs(actual_ext - prev_ext) < threshold:
+#                         # read_ext = instance.read_actual_ext()
+#                         x = abs(actual_ext - prev_ext)
+#                         if actual_ext < prev_ext:
+#                             file_ext = self.read_value_from_file(filepath) - x
+#                             self.save_value_to_file(file_ext, filepath)
+#                         elif actual_ext > prev_ext:
+#                             file_ext = self.read_value_from_file(filepath) + x
+#                             self.save_value_to_file(file_ext, filepath)
                         
-                        print(actual_ext)
-                        break
+#                         print(actual_ext)
+#                         break
 
-                    prev_ext = actual_ext
+#                     prev_ext = actual_ext
 
-                else:
-                    # raise ValueError("Failed to read current extension of motor")
-                    continue
+#                 else:
+#                     # raise ValueError("Failed to read current extension of motor")
+#                     continue
 
-            except can.CanError as e:
-                error_code = e.code
-                print("CAN Error Code:", hex(error_code))
-                error_count += 1  # Increase error count on each occurrence
+#             except can.CanError as e:
+#                 error_code = e.code
+#                 print("CAN Error Code:", hex(error_code))
+#                 error_count += 1  # Increase error count on each occurrence
 
-                if error_count >= 5:
-                    raise ValueError("CAN Error occurred 5 times. Stopping the function.")
+#                 if error_count >= 5:
+#                     raise ValueError("CAN Error occurred 5 times. Stopping the function.")
 
-                else:
-                    # self.monitor_extension(self, goal_handle, instance, filepath, threshold=3, interval=0.05)
-                    continue
+#                 else:
+#                     # self.monitor_extension(self, goal_handle, instance, filepath, threshold=3, interval=0.05)
+#                     continue
     
-# SERVICE #
-class CheckExtensionService(Node):
+# # SERVICE #
+# class CheckExtensionService(Node):
 
-    def __init__(self):
-        super().__init__('check_extension_service')
-        self.srv = self.create_service(GetExtension, 'GetExtension', self.get_extension_callback)        # CHANGE
-        self.get_logger().info('GetExtension Server is ready!')
+#     def __init__(self):
+#         super().__init__('check_extension_service')
+#         self.srv = self.create_service(GetExtension, 'GetExtension', self.get_extension_callback)        # CHANGE
+#         self.get_logger().info('GetExtension Server is ready!')
 
 
-    def get_extension_callback(self, response):
-        # node_id = request.node_id.to_bytes(1, byteorder='little')
-        response.extensiongot = read_value_from_file('saved_extension.txt')                                           # CHANGE
-        # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
+#     def get_extension_callback(self, response):
+#         # node_id = request.node_id.to_bytes(1, byteorder='little')
+#         response.extensiongot = read_value_from_file('saved_extension.txt')                                           # CHANGE
+#         # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
 
-        return response
+#         return response
     
     
 
@@ -558,21 +579,21 @@ def main(args=None):
     rclpy.init(args=args)
     # motor_init_server = MotorInit()
     DMKE_set_pos = DMKESetPositionServer()
-    DMKE_get_pos = DMKECheckPositionService()
-    cylinder_get_ext = CheckExtensionService()
-    cylinder_set_ext = CylinderSetExtension()
+    # DMKE_get_pos = DMKECheckPositionService()
+    # cylinder_get_ext = CheckExtensionService()
+    # cylinder_set_ext = CylinderSetExtension()
 
     try:
         rclpy.spin(DMKE_set_pos)
-        rclpy.spin(DMKE_get_pos)
-        rclpy.spin(cylinder_set_ext)
-        rclpy.spin(cylinder_get_ext)
+        # rclpy.spin(DMKE_get_pos)
+        # rclpy.spin(cylinder_set_ext)
+        # rclpy.spin(cylinder_get_ext)
 
         # motor_init_server.destroy_node()
-        DMKE_set_pos.destroy_node()
-        DMKE_get_pos.destroy_node()
-        cylinder_set_ext.destroy_node()
-        cylinder_get_ext.destroy_node()
+        # DMKE_set_pos.destroy_node()
+        # DMKE_get_pos.destroy_node()
+        # cylinder_set_ext.destroy_node()
+        # cylinder_get_ext.destroy_node()
 
     # network.disconnect()
     except KeyboardInterrupt:

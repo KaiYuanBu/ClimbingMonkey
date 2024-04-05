@@ -96,6 +96,7 @@ class DMKEServoDriver:
         """Send a Network Management (NMT) RESET COMMUNICATION command to a node in a CANopen network.
         """
         self.node.nmt.send_command(0x82)
+        print("RESET COMM REQUESTED")
 
 
   ################################################################################################
@@ -230,7 +231,7 @@ class DMKEServoDriver:
     #         print(f"Failed to read current position of motor")
     #         self.read_actual_pos()
             
-    def read_actual_pos(self, max_attempts=3):
+    def read_actual_pos(self, max_attempts=5):
         attempts = 0
         while attempts < max_attempts:
             try:
@@ -384,9 +385,9 @@ class DMKEServoDriver:
 
             # Interpret the bytes based on the data format
             # Here, we assume the actual speed is a 32-bit signed integer (4 bytes)
-            current = int.from_bytes(actual_current_bytes, byteorder='little', signed=True)
+            # current = int.from_bytes(actual_current_bytes, byteorder='little', signed=True)
         
-            return current  # Return the actual speed value
+            return actual_current_bytes  # Return the actual speed value
         
         except canopen.sdo.SdoCommunicationError:
             print(f"Failed to read actual current of motor")

@@ -222,12 +222,12 @@ class DMKEGetPosition: public RosServiceNode<monkey_interface::srv::GetPosition>
     NodeStatus onResponseReceived(const Response::SharedPtr& response) override
   {
     // Log
-    int positiongot = response->positiongot;
+    int position_got = response->positiongot;
     
-    if (positiongot > getInput<int>("target_pos").value() + 5000 || positiongot < getInput<int>("target_pos").value() - 5000) 
+    if (position_got > getInput<int>("target_pos").value() + 5000 || position_got < getInput<int>("target_pos").value() - 5000) 
          {
          std::stringstream ss;
-         ss << this->name() << " -> Position NOT within bounds (NODESTATUS:FAILURE): " << positiongot;
+         ss << this->name() << " -> Position NOT within bounds (NODESTATUS:FAILURE): " << position_got;
          RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
          // setOutput("position", response->position);
@@ -237,7 +237,7 @@ class DMKEGetPosition: public RosServiceNode<monkey_interface::srv::GetPosition>
 
     else{
       std::stringstream ss;
-      ss << this->name() << " -> Position within bounds (NODESTATUS:SUCCESS): " << positiongot;
+      ss << this->name() << " -> Position within bounds (NODESTATUS:SUCCESS): " << position_got;
       RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
 
       // setOutput("position", response->position);
@@ -622,6 +622,31 @@ public:
 };
 
 
+// static const char* xml_text = R"(
+// <?xml version="1.0" encoding="UTF-8"?>
+// <root BTCPP_format="4">
+//   <BehaviorTree ID="GetPosTest">
+//     <Repeat num_cycles="2">
+//       <Sequence>
+//         <DMKEGetPos node="2" service_name="/get_position" target_pos="0"/>
+//         <DMKEGetPos node="2" service_name="/get_position" target_pos="500000"/>
+//       </Sequence>
+//     </Repeat>
+//   </BehaviorTree>
+
+//   <!-- Description of Node Models (used by Groot) -->
+//   <TreeNodesModel>
+//     <Action ID="DMKEGetPos"
+//             editable="true">
+//       <input_port name="node"/>
+//       <input_port name="service_name"
+//                   default="/get_position"/>
+//       <input_port name="target_pos"/>
+//     </Action>
+//   </TreeNodesModel>
+
+// </root>
+// )";
 
 
 static const char* xml_text = R"(
@@ -633,7 +658,7 @@ static const char* xml_text = R"(
         <Sequence>
           <SubTree ID="OpenUC&LC"/>
           <Fallback>
-            <DMKEGetPos node_id="2"
+            <DMKEGetPosition node_id="2"
                         service_name="/get_position"
                         target_pos="500000"/>
             <DMKESetPosition node_id="2"
@@ -641,7 +666,7 @@ static const char* xml_text = R"(
                              target_position="500000"/>
           </Fallback>
           <Fallback>
-            <DMKEGetPos node_id="2"
+            <DMKEGetPosition node_id="2"
                         service_name="/get_position"
                         target_pos="10000"/>
             <DMKESetPosition node_id="2"
@@ -658,7 +683,7 @@ static const char* xml_text = R"(
     <Fallback>
       <Sequence>
         <Fallback>
-          <DMKEGetPos node_id="2"
+          <DMKEGetPosition node_id="2"
                       service_name="/get_position"
                       target_pos="500000"/>
           <DMKESetPosition node_id="2"
@@ -666,7 +691,7 @@ static const char* xml_text = R"(
                            target_position="500000"/>
         </Fallback>
         <Fallback>
-          <DMKEGetPos node_id="2"
+          <DMKEGetPosition node_id="2"
                       service_name="/get_position"
                       target_pos="0"/>
           <DMKESetPosition node_id="2"
@@ -688,7 +713,7 @@ static const char* xml_text = R"(
 //       <input_port name="node_id"/>
 //       <input_port name="service_name"
 //                   default="/get_position"/>
-//       <input_port name="next_pos"/>
+//       <input_port name="target_pos"/>
 //     </Action>
 //     <Action ID="DMKESetPosition"
 //             editable="true">
@@ -707,13 +732,13 @@ static const char* xml_text = R"(
 //           <SubTree ID="OpenUC&amp;LC"/>
 //           <Fallback>
 //             <DMKEGetPos node_id="3"
-//                         next_pos="0"/>
+//                         target_pos="0"/>
 //             <DMKESetPosition node_id="3"
 //                              target_position="0"/>
 //           </Fallback>
 //           <Fallback>
 //             <DMKEGetPos node_id="2"
-//                         next_pos="0"/>
+//                         target_pos="0"/>
 //             <DMKESetPosition node_id="2"
 //                              target_position="0"/>
 //           </Fallback>
@@ -728,13 +753,13 @@ static const char* xml_text = R"(
 //       <Sequence>
 //         <Fallback>
 //           <DMKEGetPos node_id="2"
-//                       next_pos="550000"/>
+//                       target_pos="550000"/>
 //           <DMKESetPosition node_id="2"
 //                            target_position="550000"/>
 //         </Fallback>
 //         <Fallback>
 //           <DMKEGetPos node_id="3"
-//                       next_pos="550000"/>
+//                       target_pos="550000"/>
 //           <DMKESetPosition node_id="3"
 //                            target_position="550000"/>
 //         </Fallback>
@@ -750,7 +775,7 @@ static const char* xml_text = R"(
 //       <input_port name="node_id"/>
 //       <input_port name="service_name"
 //                   default="/get_position"/>
-//       <input_port name="next_pos"/>
+//       <input_port name="target_pos"/>
 //     </Action>
 //     <Action ID="DMKESetPosition"
 //             editable="true">
@@ -802,7 +827,7 @@ int main(int argc, char **argv)
   // setpos_params.default_port_value = "set_position_server";
 
   factory.registerNodeType<DMKESetPosition>("DMKESetPosition", setpos_params);
-  factory.registerNodeType<DMKEGetPosition>("DMKEGetPos", setpos_params);
+  factory.registerNodeType<DMKEGetPosition>("DMKEGetPosition", setpos_params);
   factory.registerNodeType<CylinderSetExtension>("CylinderSetExt", setpos_params);
   factory.registerNodeType<CylinderGetExtension>("GetExt", setpos_params);
   factory.registerNodeType<HeightDetection>("HeightDetection", setpos_params);
