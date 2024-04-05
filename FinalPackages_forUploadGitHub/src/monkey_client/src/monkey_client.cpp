@@ -17,25 +17,22 @@
 #include <fstream>
 #include <stdexcept>
 
-// #include <behaviortree_ros2/plugins.hpp>
-
-
-// using GetPosition = monkey_interface::srv::GetPosition;
 using namespace BT;
 using namespace std::chrono;
 // let's define these, for brevity
-// using SetPosition = monkey_interface::action::SetPosition;/
+// using SetPosition = monkey_interface::action::SetPosition;
+// using GetPosition = monkey_interface::srv::GetPosition;
 // using GoalHandleSetPosition = rclcpp_action::ServerGoalHandle<SetPosition>;
 
 // PUT ALL THE CLIENT IN THIS FILE SO THAT BT CAN TICK WHEN CALLED.
-// - Service Client (dmke)
-//  - Action client (dmke)
+// - Service Client (dmke, cylinder)
+// - Action client (dmke, cylinder)
+// - Height Detection (zed)
+// - CheckPLS
+// - AskForHelp 
+
 int count = 0;
 float new_val = 0;
-
-// int x = 0; //Climb Up steps number
-// int n = 0; //Number of cycles to climb
-// int y = 0; //Climb Down steps number
 
 
 void save_value_to_file(int number, const std::string& file_path) {
