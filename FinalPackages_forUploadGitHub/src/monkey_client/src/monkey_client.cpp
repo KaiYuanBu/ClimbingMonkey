@@ -10,7 +10,6 @@
 #include "rclcpp/executors.hpp"
 #include <unordered_map>
 #include <sensor_msgs/msg/image.hpp>
-// #include "dmke_bt_test/set_position_action.hpp"
 #include <behaviortree_cpp/bt_factory.h>
 #include <behaviortree_cpp/behavior_tree.h>
 #include <chrono>
@@ -216,9 +215,6 @@ class DMKEGetPosition: public RosServiceNode<monkey_interface::srv::GetPosition>
 
     // Callback invoked when the answer is received.
     // It must return SUCCESS or FAILURE
-
-    
-    // DO PRECONDITION HERE INSTEAD OF COMPARING VALUES INSIDE, IT SEEMS THAT IT JUST RETURNS THE FIRST STATUS FOR SOME REASON
     NodeStatus onResponseReceived(const Response::SharedPtr& response) override
   {
     // Log
@@ -260,6 +256,7 @@ class DMKEGetPosition: public RosServiceNode<monkey_interface::srv::GetPosition>
       return NodeStatus::FAILURE;
     }
 };
+
 
 
 
