@@ -560,7 +560,7 @@ public:
         // Compare the contents of the files
         if (content1 == 0 && content2 == 0) {
             std::cout << "Number of Cycles is zero (SUCCESS)!" << std::endl;
-            setOutput("home_climbsteps", 0);
+            setOutput("home_climbcycles", 0);
             return NodeStatus::SUCCESS;
         } else {
             std::cout << "Number of Cycles is NOT ZERO (FAILURE)!" << std::endl;
@@ -570,10 +570,10 @@ public:
               if (content2 != 0)
               {
                 int smth1 = floor(content2 / 6);
-                int smth2 = content1 % 6;
-                int smth3 = smth1 + smth2 - 1; // minus 1 because by default monkey will already be retracted by 1 time already from BT
+                // int smth2 = content1 % 6;
+                // int smth3 = smth1 - 1; // minus 1 because by default monkey will already be retracted by 1 time already from BT
   
-                setOutput("home_climbsteps", smth3);
+                setOutput("home_climbcycles", smth1);
               }
               
             }
@@ -582,11 +582,9 @@ public:
             {
               // int smth1 = (floor(content1 / 5) * 6);
               // int smth2 = content1 % 5;
-              int smth1 = floor(content2 / 6);
-                int smth2 = content1 % 6;
-              int smth3 = smth1 + smth2 - 1;
+              int smth1 = floor(content1 / 6);
 
-              setOutput("home_climbsteps", smth3);
+              setOutput("home_climbcycles", smth1);
             }
 
             // setOutput("climb_steps", climb_Steps);
@@ -652,18 +650,18 @@ static const char* xml_text = R"(
         <Sequence>
           <SubTree ID="OpenUC&LC"/>
           <Fallback>
-            <DMKEGetPosition node_id="2"
+            <DMKEGetPosition node_id="3"
                         service_name="/get_position"
                         target_pos="500000"/>
-            <DMKESetPosition node_id="2"
+            <DMKESetPosition node_id="3"
                              action_name="/set_position"
                              target_position="500000"/>
           </Fallback>
           <Fallback>
-            <DMKEGetPosition node_id="2"
+            <DMKEGetPosition node_id="3"
                         service_name="/get_position"
                         target_pos="10000"/>
-            <DMKESetPosition node_id="2"
+            <DMKESetPosition node_id="3"
                              action_name="/set_position"
                              target_position="10000"/>
           </Fallback>
@@ -677,18 +675,18 @@ static const char* xml_text = R"(
     <Fallback>
       <Sequence>
         <Fallback>
-          <DMKEGetPosition node_id="2"
+          <DMKEGetPosition node_id="3"
                       service_name="/get_position"
                       target_pos="500000"/>
-          <DMKESetPosition node_id="2"
+          <DMKESetPosition node_id="3"
                            action_name="/set_position"
                            target_position="500000"/>
         </Fallback>
         <Fallback>
-          <DMKEGetPosition node_id="2"
+          <DMKEGetPosition node_id="3"
                       service_name="/get_position"
                       target_pos="0"/>
-          <DMKESetPosition node_id="2"
+          <DMKESetPosition node_id="3"
                            action_name="/set_position"
                            target_position="10000"/>
         </Fallback>
