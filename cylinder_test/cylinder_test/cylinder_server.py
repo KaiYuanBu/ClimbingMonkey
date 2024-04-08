@@ -60,8 +60,12 @@ class CylinderServer(Node):
         time.sleep(0.5)
         self.driver.set_positional_control_mode()
 
-        # Declare action server
+        # Declare Action server
         self.action_server = ActionServer(self, SetExtension, 'SetExtension', self.action_callback)
+
+        # Declare Service server
+        self.srv = self.create_service(GetExtension, 'GetExtension', self.get_extension_callback)        # CHANGE
+        self.get_logger().info('GetExtension Server is ready!')
 
         # Start message
         self.get_logger().info(f"SetExtension Server started")
@@ -120,6 +124,13 @@ class CylinderServer(Node):
         result = SetExtension.Result()
         result.success = True
         return result
+
+     def get_extension_callback(self, response):
+        # node_id = request.node_id.to_bytes(1, byteorder='little')
+        response.extension = read_value_from_file('saved_extension_pos.txt')                                           # CHANGE
+        # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
+
+        return response
     
     def save_value_to_file(self, number, file_path):
         if not isinstance(number, float):
@@ -238,22 +249,11 @@ class CylinderServer(Node):
                     continue
 
     # SERVICE #
-class CheckExtensionService(Node):
+# class CheckExtensionService(Node):
 
-    def __init__(self):
-        super().__init__('check_extension_service')
-        self.srv = self.create_service(GetExtension, 'GetExtension', self.get_extension_callback)        # CHANGE
-        self.get_logger().info('GetExtension Server is ready!')
-
-
-    def get_extension_callback(self, response):
-        # node_id = request.node_id.to_bytes(1, byteorder='little')
-        response.extension = read_value_from_file('saved_extension_pos.txt')                                           # CHANGE
-        # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
-
-        return response
-    
-
+#     def __init__(self):
+#         super().__init__('check_extension_service')
+        
 
 def main(args=None):
     """Run when this script is called."""
@@ -266,12 +266,14 @@ def main(args=None):
     try:
         rclpy.spin(cylinder)
     except KeyboardInterrupt:
-        pass
+        cylinder.destroy_node()
+        rclpy.shutdown()
+        # pass
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    cylinder.destroy_node()
+    
 
 if __name__ == '__main__':
     main()
