@@ -356,8 +356,6 @@ class CylinderServer(Node):
         # self.driver.set_positional_control_mode()
         target_extension = goal_handle.request.target_extension
 
-        real_target = real_ext(target_extension, filepath)
-
         if target_extension < 0 or target_extension > 1.1:
             goal_handle.abort()
             result = SetExtension.Result()
@@ -365,6 +363,9 @@ class CylinderServer(Node):
             return result
         
         else:
+
+            real_target = real_ext(target_extension, filepath)
+                
             self.driver.set_extension(real_target, 8, False)
 
             self.monitor_extension(goal_handle, filepath)
