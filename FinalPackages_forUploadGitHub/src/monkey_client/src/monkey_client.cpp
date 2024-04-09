@@ -490,17 +490,17 @@ public:
     if (count >= 20)
       {
         float avrg_val = new_val / 20;
-        int climb_Steps = floor(avrg_val / 0.85); //0.8m is the length of each extension for now!!
+        int climb_cycles = floor(avrg_val / 0.85); //0.8m is the length of each extension for now!!
         RCLCPP_INFO(node_->get_logger(), "Average center distance : %g m", avrg_val);
         RCLCPP_INFO(node_->get_logger(), "NUMBER OF CYCLES FOR CLIMBING : %d", climb_Steps);
         // n = climb_Steps;
-        int nxy = climb_Steps * 6;
+        int nxy = climb_cycles * 6;
         // int ny = climb_Steps * 6;
         save_value_to_file(nxy, "NumofStepsUP.txt");
         save_value_to_file(nxy, "NumofStepsDOWN.txt");
         count = 0;  // Reset count for next execution
         new_val = 0;  // Reset new_val for next execution
-        setOutput("climb_steps", climb_Steps);
+        setOutput("climb_cycles", climb_cycles);
         // sensor_msgs::msg::Image->unsubscribe();
         return NodeStatus::FAILURE;
       }
