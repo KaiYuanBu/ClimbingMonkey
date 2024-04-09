@@ -375,22 +375,32 @@ class DMKEServoDriver:
             print("Set Torque Control Mode Failure")
 
 
-    def read_actual_current(self):
-        try:
-            actual_current = self.node.sdo[0x221C] # Control Word
-            # current.raw = 0x00
+    def read_actual_current(self, max_attempts = 5):
+        attempts = 0
+        while attempts < max_attempts:
+            try:
+                actual_current = self.node.sdo[0x221C] # Control Word
+                # current.raw = 0x00
 
-            actual_current.read()  # Read the actual speed
-            actual_current_bytes = actual_current.raw  # Get the raw bytes
+                actual_current.read()  # Read the actual speed
+                actual_current_bytes = actual_current.raw  # Get the raw bytes
 
-            # Interpret the bytes based on the data format
-            # Here, we assume the actual speed is a 32-bit signed integer (4 bytes)
-            # current = int.from_bytes(actual_current_bytes, byteorder='little', signed=True)
+                # Interpret the bytes based on the data format
+                # Here, we assume the actual speed is a 32-bit signed integer (4 bytes)
+                # current = int.from_bytes(actual_current_bytes, byteorder='little', signed=True)
+
+                return actual_current_bytes  # Return the actual speed value
         
-            return actual_current_bytes  # Return the actual speed value
+            except canopen.sdo.SdoCommunicationError:
+                print(f"Failed to read actual current of motor, Retrying...")
+                attempts += 1
+            
+            print(f"Failed to read current position after {max_attempts} attempts.")
+            return None  # Or whatever you want to return in case of failure
+                
+    
         
-        except canopen.sdo.SdoCommunicationError:
-            print(f"Failed to read actual current of motor")
+
 
 
     def node_timeout_protection(self, timeout:int, factor:int):

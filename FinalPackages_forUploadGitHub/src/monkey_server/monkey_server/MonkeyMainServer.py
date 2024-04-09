@@ -98,7 +98,7 @@ class DMKEServers(Node):
             SetPosition,
             'set_position',
             self.execute_callback,
-            cancel_callback=self.cancel_callback
+            # cancel_callback=self.cancel_callback
             )
         
         self.dmke_srv = self.create_service(GetPosition, 'get_position', self.get_position_callback)        # CHANGE
@@ -106,7 +106,7 @@ class DMKEServers(Node):
 
         self.network = canopen.Network()
         self.network.connect(interface='seeedstudio', 
-                             channel='/dev/ttyUSB0', 
+                             channel='/dev/ttyUSB1', 
                              baudrate=115200, 
                              bitrate=500000)
 
@@ -193,7 +193,7 @@ class DMKEServers(Node):
             current_from_file = read_integer_from_file('MaxCurrent.txt')
 
             # Determine the success of the action
-            if abs(target_position - data_from_file) <= 5000 or current_from_file >= 4500:
+            if abs(target_position - data_from_file) <= 7000 or current_from_file > 4500:
                 dmke_condition = True
                 save_integer_to_file(0, 'MaxCurrent.txt')
             else:
@@ -218,9 +218,9 @@ class DMKEServers(Node):
 
             return result
 
-    def cancel_callback(self, goal_handle):
-        self.get_logger().info('Goal canceled: Move motor to position %d' % goal_handle.request.target_position)
-        goal_handle.canceled()
+    # def cancel_callback(self, goal_handle):
+    #     self.get_logger().info('Goal canceled: Move motor to position %d' % goal_handle.request.target_position)
+    #     goal_handle.canceled()
 
 
     def get_position_callback(self, request, response):
@@ -279,6 +279,9 @@ class DMKEServers(Node):
                 read_current = instance.read_actual_current()
                 print(f"Actual Current: {read_current}")
 
+                abs_read_current = abs(read_current)
+                abs_prev_current = abs(prev_current)
+
                 # Handle the case where actual_pos is a valid position
                 if actual_pos is not None and prev_pos is not None:
 
@@ -317,27 +320,31 @@ class DMKEServers(Node):
                         
                     goal_handle.publish_feedback(feedback_msg)
                     prev_pos = actual_pos
-
+                    
 
                 if read_current is not None and prev_current is not None:
-                    abs_read_current = abs(read_current)
-                    abs_prev_current = abs(prev_current)
-
-                    if abs_read_current > abs_prev_current:
+                    if abs_read_current >= abs_prev_current:
                         max_current = abs_read_current
                         save_integer_to_file(max_current, 'MaxCurrent.txt')
 
-                    elif abs_prev_current > abs_read_current:
+                    if abs_prev_current >= abs_read_current:
                         max_current = abs_prev_current
                         save_integer_to_file(max_current, 'MaxCurrent.txt')
 
-                    elif abs_read_current > 4500 or read_integer_from_file('MaxCurrent.txt') > 4500:
+                    if abs_read_current > 4500 or read_integer_from_file('MaxCurrent.txt') > 4500:
                         self.get_logger().info('Current Preset Threshold Limit Reached: %f' % read_current)
+                        x = abs(actual_pos - prev_pos)
+                        if actual_pos < prev_pos:
+                            file_pos = read_integer_from_file(filepath) - x
+                            save_integer_to_file(file_pos, filepath)
+                            
+                        elif actual_pos > prev_pos:
+                            file_pos = read_integer_from_file(filepath) + x
+                            save_integer_to_file(file_pos, filepath)
                         instance.disable()
                         break
-
-                    prev_current = read_current
                     
+                    prev_current = read_current
 
                 else:
                     # raise ValueError("Failed to read current position of motor")

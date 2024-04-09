@@ -652,18 +652,18 @@ static const char* xml_text = R"(
           <Fallback>
             <DMKEGetPosition node_id="3"
                         service_name="/get_position"
-                        target_pos="500000"/>
+                        target_pos="100000"/>
             <DMKESetPosition node_id="3"
                              action_name="/set_position"
-                             target_position="500000"/>
+                             target_position="100000"/>
           </Fallback>
           <Fallback>
             <DMKEGetPosition node_id="3"
                         service_name="/get_position"
-                        target_pos="10000"/>
+                        target_pos="0"/>
             <DMKESetPosition node_id="3"
                              action_name="/set_position"
-                             target_position="10000"/>
+                             target_position="0"/>
           </Fallback>
         </Sequence>
       </Repeat>
@@ -677,10 +677,10 @@ static const char* xml_text = R"(
         <Fallback>
           <DMKEGetPosition node_id="3"
                       service_name="/get_position"
-                      target_pos="500000"/>
+                      target_pos="100000"/>
           <DMKESetPosition node_id="3"
                            action_name="/set_position"
-                           target_position="500000"/>
+                           target_position="100000"/>
         </Fallback>
         <Fallback>
           <DMKEGetPosition node_id="3"
@@ -688,7 +688,7 @@ static const char* xml_text = R"(
                       target_pos="0"/>
           <DMKESetPosition node_id="3"
                            action_name="/set_position"
-                           target_position="10000"/>
+                           target_position="0"/>
         </Fallback>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
