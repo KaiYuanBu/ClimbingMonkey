@@ -33,7 +33,7 @@ class CylinderClient(Node):
     def get_result_callback(self, future):
         try:
             result = future.result().result
-            self.get_logger().info('Result received: {0}'.format(result.success))
+            self.get_logger().info('Result received: {0}'.format(result.success_ext))
         except Exception as e:
             self.get_logger().info('Exception while calling service: %r' % (e,))
 
@@ -46,7 +46,7 @@ def main(args=None):
 
     action_client = CylinderClient()
 
-    target_extension = 0.5 # Example target extension in meters
+    target_extension = 0.3# Example target extension in meters
     action_client.send_goal(target_extension)
 
     rclpy.spin(action_client)

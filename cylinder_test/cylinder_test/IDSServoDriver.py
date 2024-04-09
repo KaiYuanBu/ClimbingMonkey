@@ -136,11 +136,52 @@ class IDSServoDriver(can.listener.Listener):
                 self.extension = ctypes.c_int32(extension_cnt).value / self.ENCODER_CNT_PER_METRE
                 print(f"{self.name} extension = {self.extension}m")
 
+                # return self.extension
+
         # Return message from reading request to driver
         elif msg.data[1] == FunctionCode.OTO_READ_RETURN.value:
             print("---Read request received---")
             print_message(msg)
             # TODO: Read request handling
+
+    
+    # def extension_feedback(self, msg:can.Message) -> None:
+    #     """Call when CAN message is received.
+        
+    #     Implementation of can.listener.Listener callback.
+        
+    #     Args:
+    #         msg (can.Message): Incoming CAN message
+    #     """
+    #     # Filter ID
+    #     if msg.arbitration_id != self.can_id or msg.data[0] != self.group_id:
+    #         return
+
+    #     # Return message from writing to driver
+    #     # if msg.data[1] == FunctionCode.OTO_WRITE_RETURN.value:
+    #     #     self.is_message_received = True
+    #     #     self.msg_received = msg
+
+    #     # Message from report content at interval
+    #     elif msg.data[1] == FunctionCode.REPORT.value:
+    #         # print("---Report content received---")
+    #         # print_message(msg)
+
+    #         # Positional report feedback
+    #         if (msg.data[2] == RegisterAddress.READ_CURRENT_POSITION_MSB.value and
+    #             msg.data[5] == RegisterAddress.READ_CURRENT_POSITION_LSB.value):
+    #             extension_cnt = (msg.data[3]<<24) + (msg.data[4]<<16) +\
+    #                             (msg.data[6]<<8) + (msg.data[7])
+    #             self.extension = ctypes.c_int32(extension_cnt).value / self.ENCODER_CNT_PER_METRE
+    #             print(f"{self.name} extension = {self.extension}m")
+
+    #             return self.extension
+
+    #     # # Return message from reading request to driver
+    #     # elif msg.data[1] == FunctionCode.OTO_READ_RETURN.value:
+    #     #     print("---Read request received---")
+    #     #     print_message(msg)
+    #     #     # TODO: Read request handling
 
     def on_error(self, exc):
         """Call when CAN message received has error.
@@ -230,7 +271,7 @@ class IDSServoDriver(can.listener.Listener):
         ]
 
         self.enable(True) # Enable Servo
-        self.set_report_state(ReportContentType.POSITION, 500, True)
+        self.set_report_state(ReportContentType.POSITION, 10, True)
 
         # Create and send CAN message to driver
         self.is_running = True
@@ -332,6 +373,28 @@ class IDSServoDriver(can.listener.Listener):
         # Create and send CAN message to driver
         self.write_request(data, wait)
 
+    # def report_position(self, content=ReportContentType.POSITION, interval:int = 100, wait:bool=False):
+    #     """Set report message type and interval.
+
+    #     Args:
+    #         content (ReportContentType): Report message type enum.
+    #         interval (int): Report interval in milliseconds.
+    #         wait (bool, optional): Wait until message is acknowledge or timeout.
+    #     """
+    #     data = [
+    #         self.group_id, # Driver's group ID
+    #         FunctionCode.OTO_WRITE_SEND.value, # Function code
+    #         RegisterAddress.REPORT_CONTENT.value, # Register 1 (Report message)
+    #         0x00, # N/A
+    #         content.value, # Content type
+    #         RegisterAddress.REPORT_INTERVAL.value, # Register 2 (Report interval)
+    #         (interval>>8)&0xFF, # MSB
+    #         interval&0xFF, # LSB
+    #     ]
+
+    #     # Create and send CAN message to driver
+    #     self.write_request(data, wait)
+
     def set_positional_control_mode(self, wait:bool=False):
         """Set control mode to positional mode."""
         data = [
@@ -367,25 +430,25 @@ class IDSServoDriver(can.listener.Listener):
         # Create and send CAN message to driver
         self.write_request(data, wait)
 
-def save_value_to_file(self, number, file_path):
-    if not isinstance(number, float):
-        raise ValueError("Input must be a float.")
-        # print("Input not integer...Saving as 0")
-    with open(file_path, 'w') as file:
-        file.write(str(number))
+# def save_value_to_file(self, number, file_path):
+#     if not isinstance(number, float):
+#         raise ValueError("Input must be a float.")
+#         # print("Input not integer...Saving as 0")
+#     with open(file_path, 'w') as file:
+#         file.write(str(number))
 
-def read_value_from_file(self, file_path):
-    # default_value = 0
-    try:
-        with open(file_path, 'r') as file:
-            data = file.read().strip()
-            return float(data)
+# def read_value_from_file(self, file_path):
+#     # default_value = 0
+#     try:
+#         with open(file_path, 'r') as file:
+#             data = file.read().strip()
+#             return float(data)
     
-    except FileNotFoundError:
-        # If the file does not exist, create it and return 0
-        self.get_logger().warn(f"File {file_path} not found. Creating it with default value 0.")
-        self.save_integer_to_file(0, file_path)
-        return 0
+#     except FileNotFoundError:
+#         # If the file does not exist, create it and return 0
+#         self.get_logger().warn(f"File {file_path} not found. Creating it with default value 0.")
+#         self.save_value_to_file(0, file_path)
+#         return 0
     
 def main(args=None):
     """Run when this script is called."""
@@ -394,8 +457,8 @@ def main(args=None):
     # can_id_str = input("Please enter CAN ID: ")
 
     bus = can.ThreadSafeBus(
-        # interface='seeedstudio', channel='/dev/ttyUSB0', baudrate=2000000, bitrate=500000
-        interface='seeedstudio', channel='/dev/ttyS0', baudrate=2000000, bitrate=500000
+        interface='seeedstudio', channel='/dev/ttyUSB1', baudrate=115200, bitrate=500000
+        # interface='seeedstudio', channel='/dev/ttyUSB1', baudrate=2000000, bitrate=500000
     )
 
     # Initialize drivers
@@ -410,7 +473,7 @@ def main(args=None):
 
     time.sleep(0.5)
 
-    print("Extend 0.5m")
+    print("Extend 0.1m")
     d1.set_extension(0.5, 8, False)
 
     # Max is around 1.31cm
@@ -422,37 +485,37 @@ def main(args=None):
 
     prev_ext = float(d1.extension)
 
-    while d1.is_running:
-        time.sleep(0.1)
+    # while d1.is_running:
+    #     time.sleep(0.1)
         
-        actual_ext = float(d1.extension)
-        print(f'Extension: {actual_ext}')
+    #     actual_ext = float(d1.extension)
+    #     print(f'Extension: {actual_ext}')
 
-        if actual_ext < prev_ext:
-            sub_pos = abs((prev_ext - actual_ext))
-            file_pos =read_value_from_file('saved_extension.txt') - sub_pos
-            print(f"Actual extension: {file_pos}")
-            # feedback_msg.current_extension = file_pos
-            save_value_to_file(file_pos, 'saved_extension.txt')
-        #     feedback_msg.current_extension = file_pos
-        #     # save_integer_to_file(file_pos, filepath)
+    #     if actual_ext < prev_ext:
+    #         sub_pos = abs((prev_ext - actual_ext))
+    #         file_pos =read_value_from_file('saved_extension.txt') - sub_pos
+    #         print(f"Actual extension: {file_pos}")
+    #         # feedback_msg.current_extension = file_pos
+    #         save_value_to_file(file_pos, 'saved_extension.txt')
+    #     #     feedback_msg.current_extension = file_pos
+    #     #     # save_integer_to_file(file_pos, filepath)
 
-        elif actual_ext > prev_ext:
-            sub_pos = abs((prev_ext - actual_ext))
-            file_pos = read_value_from_file('saved_extension.txt') + sub_pos
-            print(f"Actual extension: {file_pos}")
-            # feedback_msg.current_extension = file_pos
-            save_value_to_file(file_pos, 'saved_extension.txt')
-        #     feedback_msg.current_extension = file_pos
+    #     elif actual_ext > prev_ext:
+    #         sub_pos = abs((prev_ext - actual_ext))
+    #         file_pos = read_value_from_file('saved_extension.txt') + sub_pos
+    #         print(f"Actual extension: {file_pos}")
+    #         # feedback_msg.current_extension = file_pos
+    #         save_value_to_file(file_pos, 'saved_extension.txt')
+    #     #     feedback_msg.current_extension = file_pos
 
         
-        # feedback_msg = SetExtension.Feedback()
+    #     # feedback_msg = SetExtension.Feedback()
 
-        # Check if position has changed significantly
-        if abs(actual_ext - prev_ext) < 0.05:
-            break
+    #     # Check if position has changed significantly
+    #     if abs(actual_ext - prev_ext) < 0.05:
+    #         break
 
-        prev_ext = actual_ext
+    #     prev_ext = actual_ext
 
 
 
