@@ -307,7 +307,7 @@ class CylinderServer(Node):
 
     def __init__(self):
         """MonKey Arm cylinder control node."""
-        super().__init__('cylinder_action_server')
+        super().__init__('CylinderServers')
 
         self.declare_parameter('can_id', 1,
             ParameterDescriptor(description='CAN ID of the target driver.'))
