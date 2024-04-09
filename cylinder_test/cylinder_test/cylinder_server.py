@@ -356,6 +356,8 @@ class CylinderServer(Node):
         # self.driver.set_positional_control_mode()
         target_extension = goal_handle.request.target_extension
 
+        real_target = real_ext(target_extension, filepath)
+
         if target_extension < 0 or target_extension > 1.1:
             goal_handle.abort()
             result = SetExtension.Result()
@@ -363,7 +365,7 @@ class CylinderServer(Node):
             return result
         
         else:
-            self.driver.set_extension(target_extension, 8, False)
+            self.driver.set_extension(real_target, 8, False)
 
             self.monitor_extension(goal_handle, filepath)
 
@@ -404,9 +406,9 @@ class CylinderServer(Node):
         #         file.write(str(default_value))
         #     return default_value
 
-    def real_ext(self, instance, target_ext, file_path):
+    def real_ext(self, target_ext, file_path):
         starting_ext = self.read_value_from_file(file_path)
-        read_ext = instance.read_actual_ext()
+        read_ext = round(self.driver.extension, 5)
 
 
         if starting_ext - 0.05 <= read_ext <= starting_ext + 0.05:
@@ -418,7 +420,7 @@ class CylinderServer(Node):
         if read_ext is None:
             starting_ext = starting_ext
 
-        print(f"Current extition: {starting_ext}")
+        print(f"Current Extension: {starting_ext}")
         real_target_ext = read_ext + (target_ext - starting_ext)
         return real_target_ext
 
