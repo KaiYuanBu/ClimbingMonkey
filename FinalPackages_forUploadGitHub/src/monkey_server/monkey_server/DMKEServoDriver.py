@@ -233,10 +233,6 @@ class DMKEServoDriver:
                 actual_pos.read()  # Read the actual position
                 actual_pos = actual_pos.raw  # Get the raw bytes
     
-                # Interpret the bytes based on the data format
-                # Here, we assume the actual position is a 32-bit signed integer (4 bytes)
-                # position = int.from_bytes(actual_pos_bytes, byteorder='little', signed=True)
-    
                 return actual_pos  # Return the actual position value
             
             except canopen.sdo.SdoCommunicationError:
