@@ -230,7 +230,7 @@ class IDSServoDriver(can.listener.Listener):
         ]
 
         self.enable(True) # Enable Servo
-        self.set_report_state(ReportContentType.POSITION, 500, True)
+        self.set_report_state(ReportContentType.POSITION, 10, True)
 
         # Create and send CAN message to driver
         self.is_running = True
