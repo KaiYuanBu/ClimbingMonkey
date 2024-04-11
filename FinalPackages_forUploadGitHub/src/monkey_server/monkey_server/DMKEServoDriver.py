@@ -179,17 +179,11 @@ class DMKEServoDriver:
             if position >= 0:
                 pos_bytes = position.to_bytes(4, byteorder='little')
 
-    
             elif position < 0:
                 pos_bytes = position.to_bytes(4, byteorder='little', signed=True)
 
             target_pos.raw = pos_bytes
 
-            # Interpolation data record, Parameter2 of ip function
-            # interpolation2 = self.node.sdo[0x60C1][0x02]
-            # interpolation1.raw = ctypes.c_int16(position & 0xFFFF).value # Interpolation least signification 2 byte
-            # interpolation2.raw = ctypes.c_int16((position >> 16) & 0xFFFF).value # Interpolation most signification 2 byte
-        
         except canopen.sdo.SdoCommunicationError:
             print(f"Failed to set target position to {position}cnt")
 
