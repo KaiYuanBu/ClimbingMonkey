@@ -46,10 +46,29 @@ def main(args=None):
 
     action_client = CylinderClient()
 
-    target_extension = 0.3# Example target extension in meters
+    target_extension = 0.0 # Example target extension in meters
     action_client.send_goal(target_extension)
 
     rclpy.spin(action_client)
+
+
+# Based on black line
+    # 0.0 = 0.0
+    # 0.1 = 7.5cm
+    # 0.2 = 14.6cm
+    # 0.3 = 21.9cm
+    # 0.4 = 29cm
+    # 0.5 = 36.1cm
+    # 0.6 = 43.2cm
+    # 0.7 = 50.5cm
+    # 0.8 = 57.6cm
+    # 0.9 = 64.7cm
+    # 1.0 = 71.8cm
+    # 1.1 = 79.1cm
+    # 1.2 = 86.2cm
+    # 1.3 = 93.4cm
+    # 1.4 = 95.7cm (1m)
+    # Distance Between Red and Black Line = 3.7cm
 
 if __name__ == '__main__':
     main()

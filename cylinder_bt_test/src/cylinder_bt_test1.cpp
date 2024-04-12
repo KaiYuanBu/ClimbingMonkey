@@ -94,7 +94,7 @@ public:
   {
     std::stringstream ss;
     ss << "Result received: ";
-    auto result = wr.result->success;
+    auto result = wr.result->success_ext;
     ss << result << " ";
   
     RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
@@ -137,151 +137,26 @@ public:
 };
 
 
-// SERVICE //
-
-class CylinderGetExtension: public RosServiceNode<monkey_interface::srv::GetExtension>
-{
-  public:
-    CylinderGetExtension(const std::string& name,
-                    const NodeConfig& conf,
-                    const RosNodeParams& params)
-      : RosServiceNode<monkey_interface::srv::GetExtension>(name, conf, params)
-    {}
-
-    // The specific ports of this Derived class
-    // should be merged with the ports of the base class,
-    // using RosServiceNode::providedBasicPorts()
-    static PortsList providedPorts()
-    {
-      return providedBasicPorts({
-        InputPort<std::string>("service_name"),
-        InputPort<float>("target_ext"),
-        // OutputPort<int>("position")
-      });
-    }
-
-    // This is called when the TreeNode is ticked and it should
-    // send the request to the service provider
-    bool setRequest(Request::SharedPtr& request) override
-    {
-      // must return true if we are ready to send the request
-      (void)request;
-      // getInput("node_id", request->node_id);
-      return true;
-    }
-
-    // Callback invoked when the answer is received.
-    // It must return SUCCESS or FAILURE
-
-    
-    NodeStatus onResponseReceived(const Response::SharedPtr& response) override
-  {
-    // Log
-    float extensiongot = response->extensiongot;
-    
-    if (extensiongot > getInput<float>("target_ext").value() + 0.05 || extensiongot < getInput<float>("target_ext").value() - 0.05) 
-         {
-         std::stringstream ss;
-         ss << this->name() << " -> Position NOT within bounds (NODESTATUS:FAILURE): " << extensiongot;
-         RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
-
-         // setOutput("position", response->position);
-         return NodeStatus::FAILURE;
-         }
-
-
-    else{
-      std::stringstream ss;
-      ss << this->name() << " -> Position within bounds (NODESTATUS:SUCCESS): " << extensiongot;
-      RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
-
-      // setOutput("position", response->position);
-      return NodeStatus::SUCCESS;
-    }
-  }
-
-
-    // Callback invoked when there was an error at the level
-    // of the communication between client and server.
-    // This will set the status of the TreeNode to either SUCCESS or FAILURE,
-    // based on the return value.
-    // If not overridden, it will return FAILURE by default.
-    virtual NodeStatus onFailure(ServiceNodeErrorCode error) override
-    {
-      std::stringstream ss;
-      ss << this->name() << " -> Error: " << error;
-      RCLCPP_INFO(node_->get_logger(), ss.str().c_str());
-
-      return NodeStatus::FAILURE;
-    }
-};
-
-
 //<?xml version="1.0" encoding="UTF-8"?>
 // Simple tree, used to execute once each action.
-// static const char* xml_text = R"(
-// <root BTCPP_format="4">
-//   <BehaviorTree ID="ROSwithBT_test2">
-//     <Repeat num_cycles="2">
-//       <Sequence>
-//         <Delay delay_msec="3000">
-//           <LASetExtension action_name="/set_extension" target_extension="0.9"/>
-//         </Delay>
-//         <Delay delay_msec="3000">
-//           <LASetExtension action_name="/set_extension" target_extension="0.1"/>
-//         </Delay>
-//       </Sequence>
-//     </Repeat>
-//   </BehaviorTree>
-//   <TreeNodesModel/>
-// </root>
-// )";
-
 static const char* xml_text = R"(
-<?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4">
-  <BehaviorTree ID="CylinderTest">
-    <Fallback>
-      <Repeat num_cycles="2">
+  <BehaviorTree ID="ROSwithBT_test2">
+    <Repeat num_cycles="2">
+      <Sequence>
         <Delay delay_msec="3000">
-          <Sequence>
-            <Fallback>
-              <LAGetExt service_name="/GetExtension"
-                        target_ext="1.1"/>
-              <LASetExtension action_name="/SetExtension"
-                              target_extension="1.1"/>
-            </Fallback>
-            <Fallback>
-              <LAGetExt service_name="/GetExtension"
-                        target_ext="0.05"/>
-              <LASetExtension action_name="/SetExtension"
-                              target_extension="0.05"/>
-            </Fallback>
-          </Sequence>
+          <LASetExtension action_name="/SetExtension" target_extension="1.0"/>
         </Delay>
-      </Repeat>
-      <AlwaysSuccess name="AskForHelp"/>
-    </Fallback>
+        <Delay delay_msec="3000">
+          <LASetExtension action_name="/SetExtension" target_extension="0.0"/>
+        </Delay>
+      </Sequence>
+    </Repeat>
   </BehaviorTree>
-
-  <!-- Description of Node Models (used by Groot) -->
-  <TreeNodesModel>
-    <Action ID="LAGetExt"
-            editable="true">
-      <input_port name="service_name"
-                  default="/GetExtension"/>
-      <input_port name="target_ext"/>
-    </Action>
-    <Action ID="LASetExtension"
-            editable="true">
-      <input_port name="action_name"
-                  default="/SetExtension"/>
-      <input_port name="target_extension"/>
-    </Action>
-  </TreeNodesModel>
-
+  <TreeNodesModel/>
 </root>
 )";
+
 
 
 int main(int argc, char **argv)
@@ -297,7 +172,6 @@ int main(int argc, char **argv)
   // setpos_params.default_port_value = "set_position_server";
 
   factory.registerNodeType<CylinderExtension>("LASetExtension", setpos_params);
-  factory.registerNodeType<CylinderGetExtension>("LAGetExt", setpos_params);
   // factory.registerNodeType<DMKEGetPosService>("GetPosition", params);
 
   // Create the behavior tree using the XML description
@@ -309,5 +183,30 @@ int main(int argc, char **argv)
   rclcpp::spin(bt_node);
   rclcpp::shutdown();
   return 0;
+
+  // Create node
+  // rclcpp::init(argc, argv);
+  // auto bt_server_node = std::make_shared<ArmBtServer>("arm_bt_server");
+
+  // // Create BT factory
+  // BehaviorTreeFactory factory;
+  // RosNodeParams bt_server_params; 
+  // bt_server_params.nh = bt_server_node;
+
+  // // Registor tree nodes
+  // factory.registerNodeType<GetPositionService>("GetPositionService", bt_server_params);
+  // factory.registerNodeType<SetPositionAction>("SetPositionAction", bt_server_params);
+  // factory.registerNodeType<InverseKinematicsService>("InverseKinematicsService", bt_server_params);
+
+  // // Create the behavior tree using the XML description
+  // Tree home_tree = factory.createTreeFromText(home_xml);
+  // Tree target_tree = factory.createTreeFromText(target_xml);
+  // bt_server_node->set_tree(ArmBtServer::BtType::HOME, &home_tree);
+  // bt_server_node->set_tree(ArmBtServer::BtType::TARGET, &target_tree);
+
+  // // Spin
+  // rclcpp::spin(bt_server_node);
+  // rclcpp::shutdown();
+  // return 0;
 
 }

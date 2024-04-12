@@ -13,6 +13,13 @@ import time
 import ctypes
 import can
 
+def read_value_from_file(file_path):
+    # default_value = 0
+    # try:
+    with open(file_path, 'r') as file:
+        data = file.read().strip()
+        return float(data)
+
 class FunctionCode(Enum):
     """Class for Function Code of CAN message in IDS Servo Driver."""
 
@@ -101,7 +108,7 @@ class IDSServoDriver(can.listener.Listener):
         self.is_message_received = False
         self.msg_received:can.Message = None
         self.is_running = False
-        self.extension:float = 0.0
+        self.extension:float = read_value_from_file('/home/mon3/bky_monkey/saved_extension.txt')
 
         # Setup CAN listener
         can.Notifier(self.bus, [self])
@@ -134,7 +141,7 @@ class IDSServoDriver(can.listener.Listener):
                 extension_cnt = (msg.data[3]<<24) + (msg.data[4]<<16) +\
                                 (msg.data[6]<<8) + (msg.data[7])
                 self.extension = ctypes.c_int32(extension_cnt).value / self.ENCODER_CNT_PER_METRE
-                print(f"{self.name} extension = {self.extension}m")
+                # print(f"{self.name} extension = {self.extension}m")
 
                 # return self.extension
 
@@ -143,45 +150,6 @@ class IDSServoDriver(can.listener.Listener):
             print("---Read request received---")
             print_message(msg)
             # TODO: Read request handling
-
-    
-    # def extension_feedback(self, msg:can.Message) -> None:
-    #     """Call when CAN message is received.
-        
-    #     Implementation of can.listener.Listener callback.
-        
-    #     Args:
-    #         msg (can.Message): Incoming CAN message
-    #     """
-    #     # Filter ID
-    #     if msg.arbitration_id != self.can_id or msg.data[0] != self.group_id:
-    #         return
-
-    #     # Return message from writing to driver
-    #     # if msg.data[1] == FunctionCode.OTO_WRITE_RETURN.value:
-    #     #     self.is_message_received = True
-    #     #     self.msg_received = msg
-
-    #     # Message from report content at interval
-    #     elif msg.data[1] == FunctionCode.REPORT.value:
-    #         # print("---Report content received---")
-    #         # print_message(msg)
-
-    #         # Positional report feedback
-    #         if (msg.data[2] == RegisterAddress.READ_CURRENT_POSITION_MSB.value and
-    #             msg.data[5] == RegisterAddress.READ_CURRENT_POSITION_LSB.value):
-    #             extension_cnt = (msg.data[3]<<24) + (msg.data[4]<<16) +\
-    #                             (msg.data[6]<<8) + (msg.data[7])
-    #             self.extension = ctypes.c_int32(extension_cnt).value / self.ENCODER_CNT_PER_METRE
-    #             print(f"{self.name} extension = {self.extension}m")
-
-    #             return self.extension
-
-    #     # # Return message from reading request to driver
-    #     # elif msg.data[1] == FunctionCode.OTO_READ_RETURN.value:
-    #     #     print("---Read request received---")
-    #     #     print_message(msg)
-    #     #     # TODO: Read request handling
 
     def on_error(self, exc):
         """Call when CAN message received has error.
@@ -271,7 +239,7 @@ class IDSServoDriver(can.listener.Listener):
         ]
 
         self.enable(True) # Enable Servo
-        self.set_report_state(ReportContentType.POSITION, 10, True)
+        self.set_report_state(ReportContentType.POSITION, 100, True)
 
         # Create and send CAN message to driver
         self.is_running = True
@@ -457,7 +425,7 @@ def main(args=None):
     # can_id_str = input("Please enter CAN ID: ")
 
     bus = can.ThreadSafeBus(
-        interface='seeedstudio', channel='/dev/ttyUSB1', baudrate=115200, bitrate=500000
+        interface='seeedstudio', channel='/dev/ttyUSB0', baudrate=115200, bitrate=500000
         # interface='seeedstudio', channel='/dev/ttyUSB1', baudrate=2000000, bitrate=500000
     )
 
@@ -474,7 +442,9 @@ def main(args=None):
     time.sleep(0.5)
 
     print("Extend 0.1m")
-    d1.set_extension(0.5, 8, False)
+    d1.set_extension(0.0, 8, False)
+    while d1.is_running:
+        print(f"Current Extension: {d1.extension}")
 
     # Max is around 1.31cm
     # MAX = 1.3 = ~95cm / Total height of monkey = 245cm
@@ -483,7 +453,7 @@ def main(args=None):
     # 0.8 = ~56cm
     # MIN = 0.05 = ~5cm
 
-    prev_ext = float(d1.extension)
+    # prev_ext = float(d1.extension)
 
     # while d1.is_running:
     #     time.sleep(0.1)

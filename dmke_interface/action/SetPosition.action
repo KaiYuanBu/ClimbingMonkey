@@ -1,5 +1,5 @@
 int32 target_position
 ---
-bool success
+bool success_pos
 ---
 int32 current_position
