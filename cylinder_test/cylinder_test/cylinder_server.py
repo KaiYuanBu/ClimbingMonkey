@@ -364,7 +364,7 @@ class CylinderServer(Node):
         
         else:
 
-            real_target = real_ext(target_extension, filepath)
+            real_target = self.real_ext(target_extension, filepath)
                 
             self.driver.set_extension(real_target, 8, False)
 
