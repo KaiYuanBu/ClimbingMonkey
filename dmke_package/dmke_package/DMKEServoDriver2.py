@@ -18,7 +18,7 @@ import canopen
 #      Arbitration ID       DATA[0] +    DATA[1]     +     DATA[2]     +  DATA[3] + DATA[4] ~ DATA[7]
 
 
-class DMKEServoDriver2_V1:
+class DMKEServoDriver:
     """Driver class for ZeroErr servo motors"""
 
     def __init__(self, network:canopen.Network, node_id) -> None:
@@ -439,7 +439,7 @@ def main(args=None):
                          bitrate=1000000)
     # '/dev/ttyS0'
     time.sleep(1)
-    c1 = DMKEServoDriver2_V1(network, node_id)
+    c1 = DMKEServoDriver(network, node_id)
     c1.NMT_Reset_Node()
     c1.NMT_Reset_Comm()
 

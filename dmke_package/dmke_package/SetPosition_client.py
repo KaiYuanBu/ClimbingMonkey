@@ -155,7 +155,8 @@ def main(args=None):
 
     action_client = SetPositionActionClient()
 
-    target_position = 500000 # Example target position
+    #Close firmly on palm stem  (bottom only) = 170000 (~~50A should jump out)
+    target_position = 100000 # Example target position
     action_client.send_goal(target_position)
     getpos_client = GetPositionClient()
     
