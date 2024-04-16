@@ -67,23 +67,23 @@ def dmke_save_filepath(node_id):
 
     return position_data_filepath
 
-def checkNoS():
-    nx = read_integer_from_file("NumofStepsUP.txt")
-    ny = read_integer_from_file("NumofStepsDOWN.txt")
+# def checkNoS():
+#     nx = read_integer_from_file("NumofStepsUP.txt")
+#     ny = read_integer_from_file("NumofStepsDOWN.txt")
     
-    if nx != 0:
-        nx -= 1
-        save_integer_to_file(nx, "NumofStepsUP.txt")
-    elif nx == 0:
-        if ny != 0:
-            ny -= 1
-            save_integer_to_file(ny, "NumofStepsDOWN.txt")
-        elif ny == 0:
-            nx = 0
-            ny = 0
-            save_integer_to_file(nx, "NumofStepsUP.txt")
-            save_integer_to_file(ny, "NumofStepsDOWN.txt")
-            print("SUCCESSFUL EXECUTION OF BT, NO PLS OCCURRED")
+#     if nx != 0:
+#         nx -= 1
+#         save_integer_to_file(nx, "NumofStepsUP.txt")
+#     elif nx == 0:
+#         if ny != 0:
+#             ny -= 1
+#             save_integer_to_file(ny, "NumofStepsDOWN.txt")
+#         elif ny == 0:
+#             nx = 0
+#             ny = 0
+#             save_integer_to_file(nx, "NumofStepsUP.txt")
+#             save_integer_to_file(ny, "NumofStepsDOWN.txt")
+#             print("SUCCESSFUL EXECUTION OF BT, NO PLS OCCURRED")
         
 
 
@@ -209,7 +209,7 @@ class DMKEServers(Node):
                 self.get_logger().info('Motor reached target position')
                 goal_handle.succeed()
 
-                checkNoS()
+                # checkNoS()
 
 
             else:
@@ -444,7 +444,7 @@ class CylinderServer(Node):
             if abs(target_extension - data_from_file) <= 0.005:
                 cylinder_condition = True
 
-                checkNoS()
+                # checkNoS()
             else:
                 cylinder_condition = False
         

@@ -50,24 +50,24 @@ void save_value_to_file(int number, const std::string& file_path) {
     }
 }
 
-// int read_value_from_file(const std::string& file_path) {
-//     int value = 0;
-//     std::ifstream file(file_path);
-//     if (file.is_open()) {
-//         file >> value;
-//         file.close();
-//     } else {
-//         // If file not found, create the file with default value
-//         std::ofstream new_file(file_path);
-//         if (new_file.is_open()) {
-//             new_file << value;
-//             new_file.close();
-//         } else {
-//             throw std::runtime_error("Unable to open file for writing.");
-//         }
-//     }
-//     return value;
-// }
+int read_value_from_file(const std::string& file_path) {
+    int value = 0;
+    std::ifstream file(file_path);
+    if (file.is_open()) {
+        file >> value;
+        file.close();
+    } else {
+        // If file not found, create the file with default value
+        std::ofstream new_file(file_path);
+        if (new_file.is_open()) {
+            new_file << value;
+            new_file.close();
+        } else {
+            throw std::runtime_error("Unable to open file for writing.");
+        }
+    }
+    return value;
+}
 
 // ##### ========== ---------- DMKE ----------  ========== #### //
 // ACTION //
@@ -447,7 +447,7 @@ public:
   static PortsList providedPorts()
   {
     return providedBasicPorts({InputPort<std::string>("topic_name"),
-                              OutputPort<int>("climb_steps")});
+                              OutputPort<int>("climb_cycles")});
   }
 
   NodeStatus onTick(const std::shared_ptr<sensor_msgs::msg::Image>& msg) override
@@ -495,17 +495,15 @@ public:
     if (count >= 20)
       {
         float avrg_val = new_val / 20;
-        int climb_Steps = floor(avrg_val / 0.85); //0.8m is the length of each extension for now!!
+        int climb_cycles = floor(avrg_val / 0.85); //0.8m is the length of each extension for now!!
         RCLCPP_INFO(node_->get_logger(), "Average center distance : %g m", avrg_val);
-        RCLCPP_INFO(node_->get_logger(), "NUMBER OF CYCLES FOR CLIMBING : %d", climb_Steps);
-        // n = climb_Steps;
-        int nxy = climb_Steps * 6;
-        // int ny = climb_Steps * 6;
-        save_value_to_file(nxy, "NumofStepsUP.txt");
-        save_value_to_file(nxy, "NumofStepsDOWN.txt");
+        RCLCPP_INFO(node_->get_logger(), "NUMBER OF CYCLES FOR CLIMBING : %d", climb_cycles);
+        
+        save_value_to_file(climb_cycles, "NumofCyclesUP.txt");
+        save_value_to_file(climb_cycles, "NumofCyclesDOWN.txt");
         count = 0;  // Reset count for next execution
         new_val = 0;  // Reset new_val for next execution
-        setOutput("climb_steps", climb_Steps);
+        setOutput("climb_cycles", climb_cycles);
         // sensor_msgs::msg::Image->unsubscribe();
         return NodeStatus::FAILURE;
       }
@@ -524,7 +522,7 @@ public:
 
     static PortsList providedPorts()
     {
-        return { OutputPort<int>("home_climbsteps")};
+        return { OutputPort<int>("home_climbcycles")};
     }
 
     NodeStatus tick() override
@@ -534,27 +532,27 @@ public:
         // const std::string file2_path = getInput<std::string>("file2_path");
 
         // Open the first text file
-        std::ifstream file1("NumofStepsUP.txt");
+        std::ifstream file1("NumofCyclessUP.txt");
         if (!file1.is_open()) {
-            std::cerr << "Failed to open file: NumofStepsUP.txt" << std::endl;
+            std::cerr << "Failed to open file: NumofCyclesUP.txt" << std::endl;
             return NodeStatus::FAILURE;
         }
 
         // Open the second text file
-        std::ifstream file2("NumofStepsDOWN.txt");
+        std::ifstream file2("NumofCyclesDOWN.txt");
         if (!file2.is_open()) {
-            std::cerr << "Failed to open file: NumofStepsDOWN.txt" << std::endl;
+            std::cerr << "Failed to open file: NumofCyclesDOWN.txt" << std::endl;
             file1.close();
             return NodeStatus::FAILURE;
         }
 
         // Read the contents of the first file
-        int content1;
-        file1 >> content1;
+        int NoC_UP;
+        file1 >> NoC_UP;
 
         // Read the contents of the second file
-        int content2;
-        file2 >> content2;
+        int NoC_DOWN;
+        file2 >> NoC_DOWN;
 
         // Close the files
         file1.close();
@@ -563,36 +561,28 @@ public:
         // int climb_Steps = floor(avrg_val / 0.85); 
 
         // Compare the contents of the files
-        if (content1 == 0 && content2 == 0) {
-            std::cout << "Number of Cycles is zero (SUCCESS)!" << std::endl;
+        if (NoC_UP == 0 && NoC_DOWN == 0) {
+            std::cout << "Number of Cycles is zero, Homing not required (SUCCESS)!" << std::endl;
             setOutput("home_climbcycles", 0);
             return NodeStatus::SUCCESS;
         } else {
-            std::cout << "Number of Cycles is NOT ZERO (FAILURE)!" << std::endl;
+            std::cout << "Number of Cycles is NOT ZERO, HOMING REQUIRED (FAILURE)!" << std::endl;
 
-            if (content1 == 0)
+            if (NoC_UP == 0)
             {
-              if (content2 != 0)
+              if (NoC_DOWN != 0)
               {
-                int smth1 = floor(content2 / 6);
-                // int smth2 = content1 % 6;
-                // int smth3 = smth1 - 1; // minus 1 because by default monkey will already be retracted by 1 time already from BT
-  
-                setOutput("home_climbcycles", smth1);
+                int home_cycles = NoC_DOWN - 1;
+                setOutput("home_climbcycles", home_cycles);
               }
-              
             }
 
             else
             {
-              // int smth1 = (floor(content1 / 5) * 6);
-              // int smth2 = content1 % 5;
-              int smth1 = floor(content1 / 6);
-
-              setOutput("home_climbcycles", smth1);
+              int home_cycles = NoC_UP - 1;
+              setOutput("home_climbcycles", home_cycles);
             }
 
-            // setOutput("climb_steps", climb_Steps);
             return NodeStatus::FAILURE;
         }
     }
@@ -617,6 +607,52 @@ public:
     }
     
 };
+
+
+class UpSubtract : public SyncActionNode {
+public:
+    UpSubtract(const std::string& name, const NodeConfig& config)
+        : SyncActionNode(name, config) {}
+
+    static PortsList providedPorts()
+    {
+        return { InputPort<int>("UP_subtract")};
+    }
+
+    BT::NodeStatus tick() override
+    {
+      int x = read_value_from_file("NumofCyclesUP.txt");
+      x += getInput<int>("UP_subtract").value();
+      save_value_to_file(x, "NumofCyclesUP.txt");
+      
+      return NodeStatus::SUCCESS;
+    }
+    
+};
+
+
+
+class DownSubtract : public SyncActionNode {
+public:
+    DownSubtract(const std::string& name, const NodeConfig& config)
+        : SyncActionNode(name, config) {}
+
+    static PortsList providedPorts()
+    {
+        return { InputPort<int>("DOWN_subtract")};
+    }
+
+    BT::NodeStatus tick() override
+    {
+      int y = read_value_from_file("NumofCyclesDOWN.txt");
+      y += getInput<int>("DOWN_subtract").value();
+      save_value_to_file(y, "NumofCyclesDOWN.txt");
+      
+      return NodeStatus::SUCCESS;
+    }
+    
+};
+
 
 class ClimbingSystemBlackboard : public SetBlackboardNode{
 public:
