@@ -59,6 +59,7 @@
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <DownSubtract DOWN_subtract="-1"/>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
@@ -123,6 +124,7 @@
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <UpSubtract UP_subtract="-1"/>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
@@ -175,15 +177,15 @@
         <Inverter>
           <KeepRunningUntilFailure>
             <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
-                             climb_steps="{climb_steps}"/>
+                             climb_cycles="{climb_cycles}"/>
           </KeepRunningUntilFailure>
         </Inverter>
         <SubTree ID="StartingPosition"/>
-        <Repeat num_cycles="{climb_steps}">
+        <Repeat num_cycles="{climb_cycles}">
           <SubTree ID="ClimbUp"/>
         </Repeat>
         <Delay delay_msec="10000">
-          <Repeat num_cycles="{climb_steps}">
+          <Repeat num_cycles="{climb_cycles}">
             <SubTree ID="ClimbDown"
                      _autoremap="false"/>
           </Repeat>
@@ -309,10 +311,15 @@
                   default="/set_position"/>
       <input_port name="target_position"/>
     </Action>
+    <Action ID="DownSubtract"
+            editable="true">
+      <input_port name="DOWN_subtract"
+                  default="-1"/>
+    </Action>
     <Condition ID="HeightDetection"
                editable="true">
       <input_port name="topic_name"/>
-      <output_port name="climb_steps"/>
+      <output_port name="climb_cycles"/>
     </Condition>
     <Action ID="LAGetExt"
             editable="true">
@@ -325,6 +332,11 @@
       <input_port name="action_name"
                   default="/SetExtension"/>
       <input_port name="target_extension"/>
+    </Action>
+    <Action ID="UpSubtract"
+            editable="true">
+      <input_port name="UP_subtract"
+                  default="-1"/>
     </Action>
   </TreeNodesModel>
 
