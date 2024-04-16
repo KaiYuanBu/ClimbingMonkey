@@ -53,10 +53,10 @@
           <Fallback>
             <DMKEGetPos node_id="2"
                         service_name="/get_position"
-                        target_pos="{dmke_open}"/>
+                        target_pos="{dmke_close}"/>
             <DMKESetPosition node_id="2"
                              action_name="/set_position"
-                             target_position="{dmke_open}"/>
+                             target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
       </Sequence>
@@ -128,6 +128,42 @@
     </Fallback>
   </BehaviorTree>
 
+  <BehaviorTree ID="EndingPosition">
+    <Fallback>
+      <Sequence>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        target_pos="600000"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="600000"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        target_pos="600000"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="600000"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext="{la_retract}"/>
+            <LASetExtension action_name="/SetExtension"
+                            target_extension="{la_retract}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+      </Sequence>
+      <AlwaysSuccess name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
   <BehaviorTree ID="New001">
     <Fallback>
       <Sequence>
@@ -152,7 +188,7 @@
                      _autoremap="false"/>
           </Repeat>
         </Delay>
-        <SubTree ID="StartingPosition"/>
+        <SubTree ID="EndingPosition"/>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
@@ -204,6 +240,7 @@
           <SubTree ID="ClimbDown"
                    _autoremap="false"/>
         </Repeat>
+        <SubTree ID="EndingPosition"/>
         <AlwaysSuccess name="AskForHelp"/>
       </Sequence>
     </Fallback>
@@ -216,20 +253,20 @@
           <Fallback>
             <DMKEGetPos node_id="2"
                         service_name="/get_position"
-                        target_pos="{dmke_open}"/>
+                        target_pos="600000"/>
             <DMKESetPosition node_id="2"
                              action_name="/set_position"
-                             target_position="{dmke_open}"/>
+                             target_position="600000"/>
           </Fallback>
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="3"
                         service_name="/get_position"
-                        target_pos="{dmke_open}"/>
+                        target_pos="{dmke_close}"/>
             <DMKESetPosition node_id="3"
                              action_name="/set_position"
-                             target_position="{dmke_open}"/>
+                             target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
