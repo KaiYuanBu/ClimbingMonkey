@@ -4,7 +4,7 @@
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
         <Action ID="CheckPLS" editable="true">
-            <output_port name="home_climbsteps"/>
+            <output_port name="home_climbcycles"/>
         </Action>
         <Action ID="ClimbingSystemBlackboard" editable="true">
             <output_port name="DMKE_open"/>
@@ -19,7 +19,7 @@
         <Action ID="DMKEGetPos" editable="true">
             <input_port name="node_id"/>
             <input_port name="service_name" default="/get_position"/>
-            <input_port name="next_pos"/>
+            <input_port name="target_pos"/>
         </Action>
         <Action ID="DMKESetPosition" editable="true">
             <input_port name="node_id"/>
