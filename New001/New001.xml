@@ -137,20 +137,20 @@
           <Fallback>
             <DMKEGetPos node_id="2"
                         service_name="/get_position"
-                        target_pos="600000"/>
+                        target_pos="{dmke_open}"/>
             <DMKESetPosition node_id="2"
                              action_name="/set_position"
-                             target_position="600000"/>
+                             target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="3"
                         service_name="/get_position"
-                        target_pos="600000"/>
+                        target_pos="{dmke_open}"/>
             <DMKESetPosition node_id="3"
                              action_name="/set_position"
-                             target_position="600000"/>
+                             target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
@@ -255,10 +255,10 @@
           <Fallback>
             <DMKEGetPos node_id="2"
                         service_name="/get_position"
-                        target_pos="600000"/>
+                        target_pos="{dmke_open}"/>
             <DMKESetPosition node_id="2"
                              action_name="/set_position"
-                             target_position="600000"/>
+                             target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
