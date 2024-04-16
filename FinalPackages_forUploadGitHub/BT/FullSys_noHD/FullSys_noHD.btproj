@@ -22,9 +22,12 @@
             <input_port name="action_name" default="/set_position"/>
             <input_port name="target_position"/>
         </Action>
+        <Action ID="DownSubtract" editable="true">
+            <input_port name="DOWN_subtract" default="-1"/>
+        </Action>
         <Condition ID="HeightDetection" editable="true">
             <input_port name="topic_name"/>
-            <output_port name="climb_steps"/>
+            <output_port name="climb_cycles"/>
         </Condition>
         <Action ID="LAGetExt" editable="true">
             <input_port name="service_name" default="/GetExtension"/>
@@ -33,6 +36,9 @@
         <Action ID="LASetExtension" editable="true">
             <input_port name="action_name" default="/SetExtension"/>
             <input_port name="target_extension"/>
+        </Action>
+        <Action ID="UpSubtract" editable="true">
+            <input_port name="UP_subtract" default="-1"/>
         </Action>
     </TreeNodesModel>
 </root>

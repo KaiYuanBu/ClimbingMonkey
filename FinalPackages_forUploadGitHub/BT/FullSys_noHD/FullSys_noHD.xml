@@ -59,6 +59,7 @@
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <DownSubtract DOWN_subtract="-1"/>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
@@ -123,6 +124,7 @@
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <UpSubtract UP_subtract="-1"/>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
@@ -135,20 +137,20 @@
           <Fallback>
             <DMKEGetPos node_id="2"
                         service_name="/get_position"
-                        target_pos="600000"/>
+                        target_pos="{dmke_open}"/>
             <DMKESetPosition node_id="2"
                              action_name="/set_position"
-                             target_position="600000"/>
+                             target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="3"
                         service_name="/get_position"
-                        target_pos="600000"/>
+                        target_pos="{dmke_open}"/>
             <DMKESetPosition node_id="3"
                              action_name="/set_position"
-                             target_position="600000"/>
+                             target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
@@ -247,10 +249,10 @@
           <Fallback>
             <DMKEGetPos node_id="2"
                         service_name="/get_position"
-                        target_pos="600000"/>
+                        target_pos="{dmke_open}"/>
             <DMKESetPosition node_id="2"
                              action_name="/set_position"
-                             target_position="600000"/>
+                             target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
@@ -303,6 +305,11 @@
                   default="/set_position"/>
       <input_port name="target_position"/>
     </Action>
+    <Action ID="DownSubtract"
+            editable="true">
+      <input_port name="DOWN_subtract"
+                  default="-1"/>
+    </Action>
     <Action ID="LAGetExt"
             editable="true">
       <input_port name="service_name"
@@ -314,6 +321,11 @@
       <input_port name="action_name"
                   default="/SetExtension"/>
       <input_port name="target_extension"/>
+    </Action>
+    <Action ID="UpSubtract"
+            editable="true">
+      <input_port name="UP_subtract"
+                  default="-1"/>
     </Action>
   </TreeNodesModel>
 
