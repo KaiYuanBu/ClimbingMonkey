@@ -13,6 +13,13 @@ import time
 import ctypes
 import can
 
+def read_value_from_file(file_path):
+    # default_value = 0
+    # try:
+    with open(file_path, 'r') as file:
+        data = file.read().strip()
+        return float(data)
+
 class FunctionCode(Enum):
     """Class for Function Code of CAN message in IDS Servo Driver."""
 
@@ -101,7 +108,7 @@ class IDSServoDriver(can.listener.Listener):
         self.is_message_received = False
         self.msg_received:can.Message = None
         self.is_running = False
-        self.extension:float = 0.0
+        self.extension:float = read_value_from_file('/home/mon3/bky_monkey/saved_extension.txt')
 
         # Setup CAN listener
         can.Notifier(self.bus, [self])
@@ -134,7 +141,9 @@ class IDSServoDriver(can.listener.Listener):
                 extension_cnt = (msg.data[3]<<24) + (msg.data[4]<<16) +\
                                 (msg.data[6]<<8) + (msg.data[7])
                 self.extension = ctypes.c_int32(extension_cnt).value / self.ENCODER_CNT_PER_METRE
-                print(f"{self.name} extension = {self.extension}m")
+                # print(f"{self.name} extension = {self.extension}m")
+
+                # return self.extension
 
         # Return message from reading request to driver
         elif msg.data[1] == FunctionCode.OTO_READ_RETURN.value:
@@ -230,7 +239,7 @@ class IDSServoDriver(can.listener.Listener):
         ]
 
         self.enable(True) # Enable Servo
-        self.set_report_state(ReportContentType.POSITION, 10, True)
+        self.set_report_state(ReportContentType.POSITION, 100, True)
 
         # Create and send CAN message to driver
         self.is_running = True
@@ -332,6 +341,28 @@ class IDSServoDriver(can.listener.Listener):
         # Create and send CAN message to driver
         self.write_request(data, wait)
 
+    # def report_position(self, content=ReportContentType.POSITION, interval:int = 100, wait:bool=False):
+    #     """Set report message type and interval.
+
+    #     Args:
+    #         content (ReportContentType): Report message type enum.
+    #         interval (int): Report interval in milliseconds.
+    #         wait (bool, optional): Wait until message is acknowledge or timeout.
+    #     """
+    #     data = [
+    #         self.group_id, # Driver's group ID
+    #         FunctionCode.OTO_WRITE_SEND.value, # Function code
+    #         RegisterAddress.REPORT_CONTENT.value, # Register 1 (Report message)
+    #         0x00, # N/A
+    #         content.value, # Content type
+    #         RegisterAddress.REPORT_INTERVAL.value, # Register 2 (Report interval)
+    #         (interval>>8)&0xFF, # MSB
+    #         interval&0xFF, # LSB
+    #     ]
+
+    #     # Create and send CAN message to driver
+    #     self.write_request(data, wait)
+
     def set_positional_control_mode(self, wait:bool=False):
         """Set control mode to positional mode."""
         data = [
@@ -367,93 +398,138 @@ class IDSServoDriver(can.listener.Listener):
         # Create and send CAN message to driver
         self.write_request(data, wait)
 
-def save_value_to_file(self, number, file_path):
-    if not isinstance(number, float):
-        raise ValueError("Input must be a float.")
-        # print("Input not integer...Saving as 0")
-    with open(file_path, 'w') as file:
-        file.write(str(number))
+# def save_value_to_file(self, number, file_path):
+#     if not isinstance(number, float):
+#         raise ValueError("Input must be a float.")
+#         # print("Input not integer...Saving as 0")
+#     with open(file_path, 'w') as file:
+#         file.write(str(number))
 
-def read_value_from_file(self, file_path):
-    # default_value = 0
-    try:
-        with open(file_path, 'r') as file:
-            data = file.read().strip()
-            return float(data)
+# def read_value_from_file(self, file_path):
+#     # default_value = 0
+#     try:
+#         with open(file_path, 'r') as file:
+#             data = file.read().strip()
+#             return float(data)
     
-    except FileNotFoundError:
-        # If the file does not exist, create it and return 0
-        self.get_logger().warn(f"File {file_path} not found. Creating it with default value 0.")
-        self.save_integer_to_file(0, file_path)
-        return 0
+#     except FileNotFoundError:
+#         # If the file does not exist, create it and return 0
+#         self.get_logger().warn(f"File {file_path} not found. Creating it with default value 0.")
+#         self.save_value_to_file(0, file_path)
+#         return 0
     
-# def main(args=None):
-#     """Run when this script is called."""
-#     # Boom 1 = 71 (0x47)
-#     # Boom 2 = 72 (0x48)
-#     # can_id_str = input("Please enter CAN ID: ")
+def main(args=None):
+    """Run when this script is called."""
+    # Boom 1 = 71 (0x47)
+    # Boom 2 = 72 (0x48)
+    # can_id_str = input("Please enter CAN ID: ")
 
-#     bus = can.ThreadSafeBus(
-#         # interface='seeedstudio', channel='/dev/ttyUSB0', baudrate=2000000, bitrate=500000
-#         interface='seeedstudio', channel='/dev/ttyS0', baudrate=2000000, bitrate=500000
-#     )
+    bus = can.ThreadSafeBus(
+        interface='seeedstudio', channel='/dev/ttyUSB0', baudrate=115200, bitrate=500000
+        # interface='seeedstudio', channel='/dev/ttyUSB1', baudrate=2000000, bitrate=500000
+    )
 
-#     # Initialize drivers
-#     d1 = IDSServoDriver(bus, 1, name="Boom 1")
-#     time.sleep(1)
-#     # d2 = IDSServoDriver(bus, 72, name="Boom 2")
-#     d1.fault_reset()
-#     time.sleep(1)
-#     print("Set positional control mode")
-#     d1.set_positional_control_mode()
-#     # d2.set_positional_control_mode()
+    # Initialize drivers
+    d1 = IDSServoDriver(bus, 1, name="Boom 1")
+    time.sleep(1)
+    # d2 = IDSServoDriver(bus, 72, name="Boom 2")
+    d1.fault_reset()
+    time.sleep(1)
+    print("Set positional control mode")
+    d1.set_positional_control_mode()
+    # d2.set_positional_control_mode()
 
-#     time.sleep(0.5)
+    time.sleep(0.5)
 
-#     print("Extend 0.5m")
-#     d1.set_extension(0.5, 8, False)
+    print("Extend 0.1m")
+    d1.set_extension(0.0, 8, False)
+    while d1.is_running:
+        print(f"Current Extension: {d1.extension}")
 
-#     # Max is around 1.31cm
-#     # MAX = 1.3 = ~95cm / Total height of monkey = 245cm
-#     # 1.0 = ~70+cm
-#     # 0.6 = ~40+cm
-#     # 0.8 = ~56cm
-#     # MIN = 0.05 = ~5cm
+    # Max is around 1.31cm
+    # MAX = 1.3 = ~95cm / Total height of monkey = 245cm
+    # 1.0 = ~70+cm
+    # 0.6 = ~40+cm
+    # 0.8 = ~56cm
+    # MIN = 0.05 = ~5cm
 
-#     prev_ext = float(d1.extension)
+    # prev_ext = float(d1.extension)
 
-#     while d1.is_running:
-#         time.sleep(0.1)
+    # while d1.is_running:
+    #     time.sleep(0.1)
         
-#         actual_ext = float(d1.extension)
-#         print(f'Extension: {actual_ext}')
+    #     actual_ext = float(d1.extension)
+    #     print(f'Extension: {actual_ext}')
 
-#         if actual_ext < prev_ext:
-#             sub_pos = abs((prev_ext - actual_ext))
-#             file_pos =read_value_from_file('saved_extension.txt') - sub_pos
-#             print(f"Actual extension: {file_pos}")
-#             # feedback_msg.current_extension = file_pos
-#             save_value_to_file(file_pos, 'saved_extension.txt')
-#         #     feedback_msg.current_extension = file_pos
-#         #     # save_integer_to_file(file_pos, filepath)
+    #     if actual_ext < prev_ext:
+    #         sub_pos = abs((prev_ext - actual_ext))
+    #         file_pos =read_value_from_file('saved_extension.txt') - sub_pos
+    #         print(f"Actual extension: {file_pos}")
+    #         # feedback_msg.current_extension = file_pos
+    #         save_value_to_file(file_pos, 'saved_extension.txt')
+    #     #     feedback_msg.current_extension = file_pos
+    #     #     # save_integer_to_file(file_pos, filepath)
 
-#         elif actual_ext > prev_ext:
-#             sub_pos = abs((prev_ext - actual_ext))
-#             file_pos = read_value_from_file('saved_extension.txt') + sub_pos
-#             print(f"Actual extension: {file_pos}")
-#             # feedback_msg.current_extension = file_pos
-#             save_value_to_file(file_pos, 'saved_extension.txt')
-#         #     feedback_msg.current_extension = file_pos
+    #     elif actual_ext > prev_ext:
+    #         sub_pos = abs((prev_ext - actual_ext))
+    #         file_pos = read_value_from_file('saved_extension.txt') + sub_pos
+    #         print(f"Actual extension: {file_pos}")
+    #         # feedback_msg.current_extension = file_pos
+    #         save_value_to_file(file_pos, 'saved_extension.txt')
+    #     #     feedback_msg.current_extension = file_pos
 
         
-#         # feedback_msg = SetExtension.Feedback()
+    #     # feedback_msg = SetExtension.Feedback()
 
-#         # Check if position has changed significantly
-#         if abs(actual_ext - prev_ext) < 0.05:
-#             break
+    #     # Check if position has changed significantly
+    #     if abs(actual_ext - prev_ext) < 0.05:
+    #         break
 
-#         prev_ext = actual_ext
+    #     prev_ext = actual_ext
 
+
+
+    # d2.set_extension(0.1, 8, False)
+    # Wait until both actuators reached target
+    # prev_ext = float(d1.extension)
+    # while (d1.is_running):
+    #     time.sleep(0.1)
+            
+    #     actual_ext = float(d1.extension)
+    #     print(f"Extension: {actual_ext}")
+    #     # feedback_msg.current_extension = actual_ext
+
+    #     if actual_ext < prev_ext:
+    #         sub_pos = abs((prev_ext - actual_ext))
+    #         # file_pos = read_value_from_file('saved_extension.txt') - sub_pos
+    #         print(f"Actual extension: {file_pos}")
+    #         # save_integer_to_file(file_pos, filepath)
+
+    #     elif actual_ext > prev_ext:
+    #         sub_pos = abs((prev_ext - actual_ext))
+    #         file_pos = read_value_from_file('saved_extension.txt') + sub_pos
+    #         print(f"Actual extension: {file_pos}")
+
+    # #     save_value_to_file(file_pos, 'saved_extension.txt')
+
+    #     # Check if position has changed significantly
+    #     if abs(actual_ext - prev_ext) < 0.05:
+    #         break
+
+    #     prev_ext = actual_ext
+        
+    #     # pass
+    # print("Extension reached... Wait 3 seconds")
+    # time.sleep(3)
+
+    # # print("Extend 0m")
+    # # d1.set_extension(0, 8, False)
+    # # # d2.set_extension(0, 8, False)
+    # # # Wait until both actuators reached target
+    # # while (d1.is_running):
+    # #     pass
+    # # print("Extension reached... Wait 3 seconds")
+    # # time.sleep(3)
 
 def print_message(msg:can.Message):
     """Print CAN message data.
@@ -465,5 +541,5 @@ def print_message(msg:can.Message):
 {hex(msg.data[2])}|{hex(msg.data[3])}|{hex(msg.data[4])}|{hex(msg.data[5])}|\
 {hex(msg.data[6])}|{hex(msg.data[7])}")
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()

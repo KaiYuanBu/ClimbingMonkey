@@ -179,11 +179,17 @@ class DMKEServoDriver:
             if position >= 0:
                 pos_bytes = position.to_bytes(4, byteorder='little')
 
+    
             elif position < 0:
                 pos_bytes = position.to_bytes(4, byteorder='little', signed=True)
 
             target_pos.raw = pos_bytes
 
+            # Interpolation data record, Parameter2 of ip function
+            # interpolation2 = self.node.sdo[0x60C1][0x02]
+            # interpolation1.raw = ctypes.c_int16(position & 0xFFFF).value # Interpolation least signification 2 byte
+            # interpolation2.raw = ctypes.c_int16((position >> 16) & 0xFFFF).value # Interpolation most signification 2 byte
+        
         except canopen.sdo.SdoCommunicationError:
             print(f"Failed to set target position to {position}cnt")
 
@@ -232,6 +238,10 @@ class DMKEServoDriver:
                 actual_pos = self.node.sdo[0x6064] # Control Word
                 actual_pos.read()  # Read the actual position
                 actual_pos = actual_pos.raw  # Get the raw bytes
+    
+                # Interpret the bytes based on the data format
+                # Here, we assume the actual position is a 32-bit signed integer (4 bytes)
+                # position = int.from_bytes(actual_pos_bytes, byteorder='little', signed=True)
     
                 return actual_pos  # Return the actual position value
             
@@ -389,9 +399,6 @@ class DMKEServoDriver:
             return None  # Or whatever you want to return in case of failure
                 
     
-        
-
-
 
     def node_timeout_protection(self, timeout:int, factor:int):
         '''

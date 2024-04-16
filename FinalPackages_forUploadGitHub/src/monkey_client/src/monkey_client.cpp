@@ -34,6 +34,11 @@ using namespace std::chrono;
 int count = 0;
 float new_val = 0;
 
+int DMKEopen = 550000;
+int DMKEclose = 10000;
+float LAextend = 1.1;
+float LAretract = 0.0;
+
 
 void save_value_to_file(int number, const std::string& file_path) {
     std::ofstream file(file_path);
@@ -490,17 +495,17 @@ public:
     if (count >= 20)
       {
         float avrg_val = new_val / 20;
-        int climb_cycles = floor(avrg_val / 0.85); //0.8m is the length of each extension for now!!
+        int climb_Steps = floor(avrg_val / 0.85); //0.8m is the length of each extension for now!!
         RCLCPP_INFO(node_->get_logger(), "Average center distance : %g m", avrg_val);
         RCLCPP_INFO(node_->get_logger(), "NUMBER OF CYCLES FOR CLIMBING : %d", climb_Steps);
         // n = climb_Steps;
-        int nxy = climb_cycles * 6;
+        int nxy = climb_Steps * 6;
         // int ny = climb_Steps * 6;
         save_value_to_file(nxy, "NumofStepsUP.txt");
         save_value_to_file(nxy, "NumofStepsDOWN.txt");
         count = 0;  // Reset count for next execution
         new_val = 0;  // Reset new_val for next execution
-        setOutput("climb_cycles", climb_cycles);
+        setOutput("climb_steps", climb_Steps);
         // sensor_msgs::msg::Image->unsubscribe();
         return NodeStatus::FAILURE;
       }
@@ -613,6 +618,52 @@ public:
     
 };
 
+class ClimbingSystemBlackboard : public SetBlackboardNode{
+public:
+  ClimbingSystemBlackboard(const std::string& name, const NodeConfig& config)
+    : SetBlackboardNode(name, config)
+  {}
+
+  static PortsList providedPorts()
+  {
+    return {OutputPort<int>("DMKE_open"),
+            OutputPort<int>("DMKE_close"),
+            OutputPort<float>("LA_extend"),
+            OutputPort<float>("LA_retract")
+            };
+  }
+
+  BT::NodeStatus tick() override
+  {
+    if (DMKEopen > 650000 || DMKEclose < -20000 || LAextend > 1.3 || LAretract < 0.0)
+    {
+      std::cout << "MOTOR/ACTUATOR VALUES EXCEEDED LIMIT (SETBLACKBOARD FAILURE) \n";
+      std::cout << "DMKE_open: " << DMKEopen << "\n";
+      std::cout << "DMKE_close: " << DMKEclose << "\n";
+      std::cout << "LA_extend: " << LAextend << "\n";
+      std::cout << "LA_retract: " << LAretract << "\n";
+      std::cout << "-----PLEASE REVISE THE VALUES-----" << std::endl;
+
+      return NodeStatus::FAILURE;
+    }
+
+    else 
+    {
+      setOutput("DMKE_open", DMKEopen);
+      setOutput("DMKE_close", DMKEclose);
+      setOutput("LA_extend", LAextend);
+      setOutput("LA_retract", LAretract);
+
+      std::cout << "MOTOR/ACTUATOR VALUES SUCCESSFULLY SET (SETBLACKBOARD SUCCESS)\n";
+      std::cout << "DMKE_open: " << DMKEopen << "\n";
+      std::cout << "DMKE_close: " << DMKEclose << "\n";
+      std::cout << "LA_extend: " << LAextend << "\n";
+      std::cout << "LA_retract: " << LAretract << std::endl;
+    
+      return NodeStatus::SUCCESS;
+    }
+  }
+};
 
 // static const char* xml_text = R"(
 // <?xml version="1.0" encoding="UTF-8"?>
