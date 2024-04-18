@@ -69,6 +69,7 @@ def main(args=None):
     # 1.3 = 93.4cm
     # 1.4 = 95.7cm (1m)
     # Distance Between Red and Black Line = 3.7cm
+    # Distance between origin and black line = 6.8cm
 
 if __name__ == '__main__':
     main()
