@@ -45,8 +45,8 @@ class RegisterAddress(Enum):
     CAN_ID = 0x0D # Servo driver's CAN ID
     REPORT_CONTENT = 0x2E # Status report content
     POSITIONAL_MODE_ACCELERATION_TIME = 0x09 # Acceleration / Decceleration time
-    SET_POSITION_MODE_MSB = 0x50 # Set target position 16bit MSB
-    SET_POSITION_MODE_LSB = 0x05 # Set target position 16bit LSB
+    TARGET_POSITION_MSB = 0x50 # Set target position 16bit MSB
+    TARGET_POSITION_LSB = 0x05 # Set target position 16bit LSB
     CURRENT_POSITION_MSB = 0x3C # Target position 16bit MSB
     CURRENT_POSITION_LSB = 0x3D # Target position 16bit LSB
     ERROR_RESET = 0x4A # Clear all error
@@ -56,9 +56,6 @@ class RegisterAddress(Enum):
     EMERGENCY_STOP = 0x4D # Stop all motion immediately
     SLOW_STOP = 0x4F # Stop all motion with decceleration
     TARGET_HOME = 0x53 # Search for Z signal (home)
-
-    SET_TARGET_POS = 0x51 # LOW = 00 (ABSOLUTE)
-                            # LOW = 01 (RELATIVE)
 
     #------Read Address------
     READ_BUS_VOLTAGE = 0xE1 # Voltage of input bus in V
@@ -141,9 +138,19 @@ class IDSServoDriver(can.listener.Listener):
 
         # Return message from reading request to driver
         elif msg.data[1] == FunctionCode.OTO_READ_RETURN.value:
+            self.is_message_received = True
+            self.msg_received = msg
+
             print("---Read request received---")
             print_message(msg)
-            # TODO: Read request handling
+            
+            # Positional report feedback
+            if (msg.data[2] == RegisterAddress.READ_CURRENT_POSITION_MSB.value and
+                msg.data[5] == RegisterAddress.READ_CURRENT_POSITION_LSB.value):
+                extension_cnt = (msg.data[3]<<24) + (msg.data[4]<<16) +\
+                                (msg.data[6]<<8) + (msg.data[7])
+                self.extension = ctypes.c_int32(extension_cnt).value / self.ENCODER_CNT_PER_METRE
+                print(f"{self.name} extension = {self.extension}m")
 
     def on_error(self, exc):
         """Call when CAN message received has error.
@@ -209,6 +216,64 @@ class IDSServoDriver(can.listener.Listener):
                 print_message(msg)
                 print()
                 break
+    
+    def read_request(self, data, wait:bool=False):
+        """Send write request to target driver.
+
+        Args:
+            data: CAN message data
+            wait (bool, optional): Wait until message is acknowledge or timeout.
+        """
+        msg = can.Message(
+            arbitration_id = self.can_id,
+            data = data,
+            is_extended_id = False
+        )
+        self.bus.send(msg)
+
+        # Error handling thread
+        thread = threading.Thread(target = self.read_message_thread, args=[msg])
+        thread.start()
+
+        # Wait until thread is acknowledge or timeout
+        if wait:
+            thread.join()
+
+    def read_message_thread(self, msg:can.Message):
+        """Thread for managing write request."""
+        message_timeout = time.time() + self.message_timeout
+        while True:
+            # Check for receive message
+            if (self.is_message_received and self.msg_received is not None):
+                # Check if received message matches
+                is_data_match = False
+                if (self.msg_received.data [1]== FunctionCode.OTO_READ_RETURN.value
+                    and self.msg_received.data[2] == msg.data[2]
+                    and self.msg_received.data[5] == msg.data[5]):
+                    is_data_match = True
+
+                if not is_data_match:
+                    print("Warning: Message received does not match.")
+                    print("---Sent---")
+                    print_message(msg)
+                    print("---Received---")
+                    print_message(self.msg_received)
+                    print()
+
+                # Reset message
+                lock = threading.Lock()
+                with lock:
+                    self.is_message_received = False
+                    self.msg_received = None
+                break
+
+            # Check for timeout
+            if time.time() > message_timeout:
+                print("Warning: CAN message timeout.")
+                print("---Sent---")
+                print_message(msg)
+                print()
+                break
 
     def set_extension(self, ext:float, timeout:float=0, wait:bool=False):
         """Set cylinder extension target.
@@ -224,7 +289,7 @@ class IDSServoDriver(can.listener.Listener):
         data = [
             self.group_id, # Driver's group ID
             FunctionCode.OTO_WRITE_SEND.value, # Function code
-            RegisterAddress.SET_TARGET_POS.value, # Register 1 (Positional control 16bit MSB)
+            RegisterAddress.TARGET_POSITION_MSB.value, # Register 1 (Positional control 16bit MSB)
             (ext_cnt>>24)&0xFF, # MSB
             (ext_cnt>>16)&0xFF, # LSB
             RegisterAddress.TARGET_POSITION_LSB.value, # Register 2 (Positional control 16bit LSB)
@@ -272,6 +337,27 @@ class IDSServoDriver(can.listener.Listener):
         time.sleep(1)
         self.disable()
         self.is_running = False
+    
+    def read_extension(self, wait:bool=True):
+        """Read extension from driver.
+        
+        Args:
+            wait (bool, optional): Wait until message is acknowledge or timeout.
+        """
+        data = [
+            self.group_id, # Driver's group ID
+            FunctionCode.OTO_READ_SEND.value, # Function code
+            RegisterAddress.READ_CURRENT_POSITION_MSB.value, # Register 1 (Read current position 16bit MSB)
+            0x00, # N/A
+            0x00, # N/A
+            RegisterAddress.READ_CURRENT_POSITION_LSB.value, # Register 2 (Read current position 16bit LSB)
+            0x00, # N/A
+            0x00, # N/A
+        ]
+
+        # Create and send CAN message to driver
+        self.read_request(data, wait)
+
 
     def enable(self, wait:bool=False):
         """Enable movement of the motor (release brake).
@@ -310,21 +396,6 @@ class IDSServoDriver(can.listener.Listener):
             0x00, # Stop servo
         ]
 
-    def fault_reset(self, wait:bool=False):
-        """Enable movement of the motor (release brake).
-        
-        Args:
-            wait (bool, optional): Wait until message is acknowledge or timeout.
-        """
-        data = [
-            self.group_id, # Driver's group ID
-            FunctionCode.OTO_WRITE_SEND.value, # Function code
-            RegisterAddress.ERROR_RESET.value, # Register 1 (Servo start/stop)
-            0x00, # N/A
-            0x00, # Stop servo
-            0xFF,
-        ]
-
         # Create and send CAN message to driver
         self.write_request(data, wait)
 
@@ -355,12 +426,12 @@ class IDSServoDriver(can.listener.Listener):
         data = [
             self.group_id, # Driver's group ID
             FunctionCode.OTO_WRITE_SEND.value, # Function code
-            RegisterAddress.SET_POSITION_MODE_MSB.value, # Register 2 (Servo start/stop)
+            RegisterAddress.SERVO_START_STOP.value, # Register 2 (Servo start/stop)
             0x00, # N/A
             0x00, # Stop servo
-            RegisterAddress.SET_POSITION_MODE_LSB.value, # Register 2 (Control mode selection)
+            RegisterAddress.CONTROL_MODE.value, # Register 2 (Control mode selection)
             0x00, # N/A
-            0x00, # Positional control mode
+            0xD0, # Positional control mode
         ]
 
         # Create and send CAN message to driver
@@ -373,17 +444,14 @@ def main(args=None):
     # can_id_str = input("Please enter CAN ID: ")
 
     bus = can.ThreadSafeBus(
-        interface='seeedstudio', channel='/dev/ttyS0', baudrate=2000000, bitrate=500000
+        # interface='seeedstudio', channel='/dev/ttyUSB0', baudrate=2000000, bitrate=500000
         # interface='seeedstudio', channel='COM6', baudrate=2000000, bitrate=500000
+        interface='socketcan', channel="can0", bitrate=500000
     )
 
     # Initialize drivers
     d1 = IDSServoDriver(bus, 71, name="Boom 1")
     time.sleep(1)
-    d1.fault_reset()
-    print("Fault Reset")
-    # time.sleep(1)
-    # d1.enable()
     # d2 = IDSServoDriver(bus, 72, name="Boom 2")
     time.sleep(1)
     print("Set positional control mode")
@@ -392,25 +460,31 @@ def main(args=None):
 
     time.sleep(0.5)
 
+    d1.read_extension()
+    # d2.read_extension()
+
     print("Extend 0.1m")
-    d1.set_extension(0.1, 8, False)
-    # d2.set_extension(0.1, 8, False)
+    d1.set_extension(0.0, 8, False)
+
+    
+    # d2.set_extension(0.0, 8, False)
     # Wait until both actuators reached target
-    while (d1.is_running):
+    while (d1.is_running or d2.is_running):
         pass
     print("Extension reached... Wait 3 seconds")
     time.sleep(3)
 
-    print("Extend 0m")
-    d1.set_extension(0, 8, False)
+    d1.read_extension()
+    # d2.read_extension()
+
+    # print("Extend 0m")
+    # d1.set_extension(0, 8, False)
     # d2.set_extension(0, 8, False)
-    # Wait until both actuators reached target
-    while (d1.is_running):
-        pass
-    print("Extension reached... Wait 3 seconds")
+    # # Wait until both actuators reached target
+    # while (d1.is_running or d2.is_running):
+    #     pass
+    # print("Extension reached... Wait 3 seconds")
     time.sleep(3)
-
-    d1.disable()
 
 def print_message(msg:can.Message):
     """Print CAN message data.
