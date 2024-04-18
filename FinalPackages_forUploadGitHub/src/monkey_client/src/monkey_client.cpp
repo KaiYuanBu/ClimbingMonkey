@@ -339,6 +339,7 @@ public:
   // The Cancel request will be send automatically to the server.
   NodeStatus onFeedback(const std::shared_ptr<const Feedback> feedback)
   {
+    int count = 0;
     std::stringstream ss;
     ss << "Current Extension: ";
     auto current_ext = feedback->current_extension;
