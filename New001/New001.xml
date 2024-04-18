@@ -171,7 +171,7 @@
       <Sequence>
         <SubTree ID="PowerLossScenario"
                  _autoremap="true"/>
-        <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.1; la_retract:=0.0"/>
+        <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.1; la_retract:=0.05"/>
         <Inverter>
           <KeepRunningUntilFailure>
             <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
