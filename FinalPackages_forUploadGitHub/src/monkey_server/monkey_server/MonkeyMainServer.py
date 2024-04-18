@@ -489,7 +489,7 @@ class CylinderServer(Node):
         return real_target_ext
 
 
-    def monitor_extension(self, goal_handle, filepath, interval = 0.01):
+    def monitor_extension(self, goal_handle, filepath, interval = 0.05):
         """
         Monitors the extension of a linear actuator continuously until the change
         in extension is less than the specified threshold.
@@ -503,6 +503,7 @@ class CylinderServer(Node):
         prev_ext = self.driver.extension
         # print(f"extension from Motor's Perspective {prev_ext}")
         error_count = 0  # Initialize error count
+        count = 0
         feedback_msg = SetExtension.Feedback()
 
         while self.driver.is_running:
@@ -531,6 +532,14 @@ class CylinderServer(Node):
                         print(f"Actual extension: {file_ext}")
                         feedback_msg.current_extension = file_ext
                         save_value_to_file(file_ext, filepath)
+
+                    if actual_ext == prev_ext:
+                        count += 1
+
+                    if count > 30:
+                        self.driver.disable()
+                        print("..........EXTENSION FAILED..........")
+                        break
                     
                     # self.driver.disable()
                     goal_handle.publish_feedback(feedback_msg)
