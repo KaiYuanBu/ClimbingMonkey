@@ -169,28 +169,29 @@
   <BehaviorTree ID="New001">
     <Fallback>
       <Sequence>
-        <SubTree ID="PowerLossScenario"/>
-        <ClimbingSystemBlackboard DMKE_open="{dmke_open}"
-                                  DMKE_close="{dmke_close}"
-                                  LA_extend="{la_extend}"
-                                  LA_retract="{la_retract}"/>
+        <SubTree ID="PowerLossScenario"
+                 _autoremap="true"/>
+        <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.1; la_retract:=0.0"/>
         <Inverter>
           <KeepRunningUntilFailure>
             <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
                              climb_cycles="{climb_cycles}"/>
           </KeepRunningUntilFailure>
         </Inverter>
-        <SubTree ID="StartingPosition"/>
+        <SubTree ID="StartingPosition"
+                 _autoremap="true"/>
         <Repeat num_cycles="{climb_cycles}">
-          <SubTree ID="ClimbUp"/>
+          <SubTree ID="ClimbUp"
+                   _autoremap="true"/>
         </Repeat>
         <Delay delay_msec="10000">
           <Repeat num_cycles="{climb_cycles}">
             <SubTree ID="ClimbDown"
-                     _autoremap="false"/>
+                     _autoremap="true"/>
           </Repeat>
         </Delay>
-        <SubTree ID="EndingPosition"/>
+        <SubTree ID="EndingPosition"
+                 _autoremap="true"/>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
@@ -289,13 +290,6 @@
     <Action ID="CheckPLS"
             editable="true">
       <output_port name="home_climbcycles"/>
-    </Action>
-    <Action ID="ClimbingSystemBlackboard"
-            editable="true">
-      <output_port name="DMKE_open"/>
-      <output_port name="DMKE_close"/>
-      <output_port name="LA_extend"/>
-      <inout_port name="LA_retract"/>
     </Action>
     <Action ID="DMKEGetPos"
             editable="true">
