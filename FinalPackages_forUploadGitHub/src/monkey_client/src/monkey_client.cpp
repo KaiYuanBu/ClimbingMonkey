@@ -17,6 +17,7 @@
 #include <fstream>
 #include <stdexcept>
 
+
 using namespace BT;
 using namespace std::chrono;
 // let's define these, for brevity
@@ -48,6 +49,19 @@ void save_value_to_file(int number, const std::string& file_path) {
     } else {
         throw std::runtime_error("Unable to open file for writing.");
     }
+    // std::ofstream outfile(file_path); // Open file for writing
+
+    // if (outfile.is_open()) {
+    //     // Write to the file
+    //     outfile << number;
+    //     // outfile << "This is another line of text.\n";
+
+    //     // Close the file
+    //     outfile.close();
+    //     std::cout << "File written successfully.\n";
+    // } else {
+    //     std::cout << "Unable to open file.\n";
+    // }
 }
 
 int read_value_from_file(const std::string& file_path) {
@@ -67,6 +81,24 @@ int read_value_from_file(const std::string& file_path) {
         }
     }
     return value;
+
+    // std::ifstream infile(file_path); // Open file for reading
+    // int value;
+    // if (infile.is_open()) {
+        
+    //     infile >> value;
+    //     // // Read integers until the end of the file
+    //     // while (infile >> value) {
+    //     //     std::cout << value << "\n";
+    //     // }
+
+    //     // Close the file
+    //     infile.close();
+        
+    // } else {
+    //     std::cout << "Unable to open file.\n";
+    // }
+    // return value;
 }
 
 // ##### ========== ---------- DMKE ----------  ========== #### //
@@ -221,6 +253,7 @@ class DMKEGetPosition: public RosServiceNode<monkey_interface::srv::GetPosition>
   {
     // Log
     int position_got = response->positiongot;
+    std::cout << getInput<int>("target_pos").value();
     
     if (position_got > getInput<int>("target_pos").value() + 5000 || position_got < getInput<int>("target_pos").value() - 5000) 
          {
@@ -339,7 +372,6 @@ public:
   // The Cancel request will be send automatically to the server.
   NodeStatus onFeedback(const std::shared_ptr<const Feedback> feedback)
   {
-    int count = 0;
     std::stringstream ss;
     ss << "Current Extension: ";
     auto current_ext = feedback->current_extension;
@@ -496,9 +528,11 @@ public:
     if (count >= 20)
       {
         float avrg_val = new_val / 20;
-        int climb_cycles = floor(avrg_val / 0.85); //0.8m is the length of each extension for now!!
+        int climb_cycles = floor(avrg_val / 0.8); //0.8m is the length of each extension for now!!
         RCLCPP_INFO(node_->get_logger(), "Average center distance : %g m", avrg_val);
         RCLCPP_INFO(node_->get_logger(), "NUMBER OF CYCLES FOR CLIMBING : %d", climb_cycles);
+
+        // if (climb_cycles == 0)
         
         save_value_to_file(climb_cycles, "NumofCyclesUP.txt");
         save_value_to_file(climb_cycles, "NumofCyclesDOWN.txt");
@@ -533,7 +567,7 @@ public:
         // const std::string file2_path = getInput<std::string>("file2_path");
 
         // Open the first text file
-        std::ifstream file1("NumofCyclessUP.txt");
+        std::ifstream file1("NumofCyclesUP.txt");
         if (!file1.is_open()) {
             std::cerr << "Failed to open file: NumofCyclesUP.txt" << std::endl;
             return NodeStatus::FAILURE;
@@ -590,10 +624,10 @@ public:
 };
 
 
-class AskForHelp : public AlwaysSuccessNode {
+class AskForHelp : public AlwaysFailureNode {
 public:
     AskForHelp(const std::string& name)
-        : AlwaysSuccessNode(name) {}
+        : AlwaysFailureNode(name) {}
 
     // static PortsList providedPorts()
     // {
@@ -655,52 +689,52 @@ public:
 };
 
 
-class ClimbingSystemBlackboard : public SetBlackboardNode{
-public:
-  ClimbingSystemBlackboard(const std::string& name, const NodeConfig& config)
-    : SetBlackboardNode(name, config)
-  {}
+// class ClimbingSystemBlackboard : public SyncActionNode{
+// public:
+//   ClimbingSystemBlackboard(const std::string& name, const NodeConfig& config)
+//     : SyncActionNode(name, config)
+//   {}
 
-  static PortsList providedPorts()
-  {
-    return {OutputPort<int>("DMKE_open"),
-            OutputPort<int>("DMKE_close"),
-            OutputPort<float>("LA_extend"),
-            OutputPort<float>("LA_retract")
-            };
-  }
+//   static PortsList providedPorts()
+//   {
+//     return {OutputPort<int>("DMKE_open"),
+//             OutputPort<int>("DMKE_close")
+//             // OutputPort<float>("LA_extend"),
+//             // OutputPort<float>("LA_retract")
+//             };
+//   }
 
-  BT::NodeStatus tick() override
-  {
-    if (DMKEopen > 650000 || DMKEclose < -20000 || LAextend > 1.3 || LAretract < 0.0)
-    {
-      std::cout << "MOTOR/ACTUATOR VALUES EXCEEDED LIMIT (SETBLACKBOARD FAILURE) \n";
-      std::cout << "DMKE_open: " << DMKEopen << "\n";
-      std::cout << "DMKE_close: " << DMKEclose << "\n";
-      std::cout << "LA_extend: " << LAextend << "\n";
-      std::cout << "LA_retract: " << LAretract << "\n";
-      std::cout << "-----PLEASE REVISE THE VALUES-----" << std::endl;
+//   BT::NodeStatus tick() override
+//   {
+//     if (DMKEopen > 650000 || DMKEclose < -20000 || LAextend > 1.3 || LAretract < 0.0)
+//     {
+//       std::cout << "MOTOR/ACTUATOR VALUES EXCEEDED LIMIT (SETBLACKBOARD FAILURE) \n";
+//       std::cout << "DMKE_open: " << DMKEopen << "\n";
+//       std::cout << "DMKE_close: " << DMKEclose << "\n";
+//       std::cout << "LA_extend: " << LAextend << "\n";
+//       std::cout << "LA_retract: " << LAretract << "\n";
+//       std::cout << "-----PLEASE REVISE THE VALUES-----" << std::endl;
 
-      return NodeStatus::FAILURE;
-    }
+//       return NodeStatus::FAILURE;
+//     }
 
-    else 
-    {
-      setOutput("DMKE_open", DMKEopen);
-      setOutput("DMKE_close", DMKEclose);
-      setOutput("LA_extend", LAextend);
-      setOutput("LA_retract", LAretract);
+//     else 
+//     {
+//       setOutput("DMKE_open", DMKEopen);
+//       setOutput("DMKE_close", DMKEclose);
+//       // setOutput("LA_extend", LAextend);
+//       // setOutput("LA_retract", LAretract);
 
-      std::cout << "MOTOR/ACTUATOR VALUES SUCCESSFULLY SET (SETBLACKBOARD SUCCESS)\n";
-      std::cout << "DMKE_open: " << DMKEopen << "\n";
-      std::cout << "DMKE_close: " << DMKEclose << "\n";
-      std::cout << "LA_extend: " << LAextend << "\n";
-      std::cout << "LA_retract: " << LAretract << std::endl;
+//       std::cout << "MOTOR/ACTUATOR VALUES SUCCESSFULLY SET (SETBLACKBOARD SUCCESS)\n";
+//       std::cout << "DMKE_open: " << DMKEopen << "\n";
+//       std::cout << "DMKE_close: " << DMKEclose << "\n";
+//       std::cout << "LA_extend: " << LAextend << "\n";
+//       std::cout << "LA_retract: " << LAretract << std::endl;
     
-      return NodeStatus::SUCCESS;
-    }
-  }
-};
+//       return NodeStatus::SUCCESS;
+//     }
+//   }
+// };
 
 // static const char* xml_text = R"(
 // <?xml version="1.0" encoding="UTF-8"?>
@@ -729,170 +763,650 @@ public:
 // )";
 
 
+// static const char* xml_text = R"(
+// <?xml version="1.0" encoding="UTF-8"?>
+// <root BTCPP_format="4">
+//   <BehaviorTree ID="ClimbDown">
+//     <Fallback>
+//       <Sequence>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="3"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_open}"/>
+//             <DMKESetPosition node_id="3"
+//                              action_name="/set_position"
+//                              target_position="{dmke_open}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="3"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_close}"/>
+//             <DMKESetPosition node_id="3"
+//                              action_name="/set_position"
+//                              target_position="{dmke_close}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="2"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_open}"/>
+//             <DMKESetPosition node_id="2"
+//                              action_name="/set_position"
+//                              target_position="{dmke_open}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="2"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_close}"/>
+//             <DMKESetPosition node_id="2"
+//                              action_name="/set_position"
+//                              target_position="{dmke_close}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//       </Sequence>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <BehaviorTree ID="ClimbUp">
+//     <Fallback>
+//       <Sequence>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="2"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_open}"/>
+//             <DMKESetPosition node_id="2"
+//                              action_name="/set_position"
+//                              target_position="{dmke_open}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="2"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_close}"/>
+//             <DMKESetPosition node_id="2"
+//                              action_name="/set_position"
+//                              target_position="{dmke_close}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="3"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_open}"/>
+//             <DMKESetPosition node_id="3"
+//                              action_name="/set_position"
+//                              target_position="{dmke_open}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="3"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_close}"/>
+//             <DMKESetPosition node_id="3"
+//                              action_name="/set_position"
+//                              target_position="{dmke_close}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//       </Sequence>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <BehaviorTree ID="DoubleClamp">
+//     <Fallback>
+//       <Sequence>
+//         <Script code="dmke_open:=550000; dmke_close:=10000"/>
+//         <SubTree ID="StartingPosition"
+//                  _autoremap="true"/>
+//         <Repeat num_cycles="3">
+//           <SubTree ID="ClimbUp"
+//                    _autoremap="true"/>
+//         </Repeat>
+//         <Delay delay_msec="10000">
+//           <Repeat num_cycles="3">
+//             <SubTree ID="ClimbDown"
+//                      _autoremap="true"/>
+//           </Repeat>
+//         </Delay>
+//         <SubTree ID="EndingPosition"
+//                  _autoremap="true"/>
+//       </Sequence>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <BehaviorTree ID="EndingPosition">
+//     <Fallback>
+//       <Sequence>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="2"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_open}"/>
+//             <DMKESetPosition node_id="2"
+//                              action_name="/set_position"
+//                              target_position="{dmke_open}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="3"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_open}"/>
+//             <DMKESetPosition node_id="3"
+//                              action_name="/set_position"
+//                              target_position="{dmke_open}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//       </Sequence>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <BehaviorTree ID="StartingPosition">
+//     <Fallback>
+//       <Sequence>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="2"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_open}"/>
+//             <DMKESetPosition node_id="2"
+//                              action_name="/set_position"
+//                              target_position="{dmke_open}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <DMKEGetPos node_id="3"
+//                         service_name="/get_position"
+//                         target_pos="{dmke_close}"/>
+//             <DMKESetPosition node_id="3"
+//                              action_name="/set_position"
+//                              target_position="{dmke_close}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//       </Sequence>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <!-- Description of Node Models (used by Groot) -->
+//   <TreeNodesModel>
+//     <Action ID="DMKEGetPos"
+//             editable="true">
+//       <input_port name="node_id"/>
+//       <input_port name="service_name"
+//                   default="/get_position"/>
+//       <input_port name="target_pos"/>
+//     </Action>
+//     <Action ID="DMKESetPosition"
+//             editable="true">
+//       <input_port name="node_id"/>
+//       <input_port name="action_name"
+//                   default="/set_position"/>
+//       <input_port name="target_position"/>
+//     </Action>
+//   </TreeNodesModel>
+
+// </root>
+// )";
+
+// static const char* xml_text = R"(
+// <?xml version="1.0" encoding="UTF-8"?>
+// <root BTCPP_format="4">
+//   <BehaviorTree ID="ClimbDown">
+//     <Fallback>
+//       <Sequence>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <LAGetExt service_name="/GetExtension"
+//                       target_ext="{la_extend}"/>
+//             <LASetExtension action_name="/SetExtension"
+//                             target_extension="{la_extend}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <LAGetExt service_name="/GetExtension"
+//                       target_ext="{la_retract}"/>
+//             <LASetExtension action_name="/SetExtension"
+//                             target_extension="{la_retract}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <DownSubtract DOWN_subtract="-1"/>
+//       </Sequence>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <BehaviorTree ID="ClimbUp">
+//     <Fallback>
+//       <Sequence>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <LAGetExt service_name="/GetExtension"
+//                       target_ext="{la_extend}"/>
+//             <LASetExtension action_name="/SetExtension"
+//                             target_extension="{la_extend}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <LAGetExt service_name="/GetExtension"
+//                       target_ext="{la_retract}"/>
+//             <LASetExtension action_name="/SetExtension"
+//                             target_extension="{la_retract}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <UpSubtract UP_subtract="-1"/>
+//       </Sequence>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <BehaviorTree ID="EndingPosition">
+//     <Fallback>
+//       <Sequence>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <LAGetExt service_name="/GetExtension"
+//                       target_ext="0.0"/>
+//             <LASetExtension action_name="/SetExtension"
+//                             target_extension="0.0"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//       </Sequence>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <BehaviorTree ID="LAHD">
+//     <Fallback>
+//       <Sequence>
+//         <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.0; la_retract:=0.1"/>
+//         <SubTree ID="PowerLossScenario"
+//                  _autoremap="true"/>
+//         <Inverter>
+//           <KeepRunningUntilFailure>
+//             <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
+//                              climb_cycles="{climb_cycles}"/>
+//           </KeepRunningUntilFailure>
+//         </Inverter>
+//         <SubTree ID="StartingPosition"
+//                  _autoremap="true"/>
+//         <Repeat num_cycles="{climb_cycles}">
+//           <SubTree ID="ClimbUp"
+//                    _autoremap="true"/>
+//         </Repeat>
+//         <Delay delay_msec="10000">
+//           <Repeat num_cycles="{climb_cycles}">
+//             <SubTree ID="ClimbDown"
+//                      _autoremap="true"/>
+//           </Repeat>
+//         </Delay>
+//         <SubTree ID="EndingPosition"
+//                  _autoremap="true"/>
+//       </Sequence>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <BehaviorTree ID="PowerLossScenario">
+//     <Fallback>
+//       <CheckPLS home_climbcycles="{home_climbcycles}"/>
+//       <Sequence>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <LAGetExt service_name="/GetExtension"
+//                       target_ext="{la_retract}"/>
+//             <LASetExtension action_name="/SetExtension"
+//                             target_extension="{la_retract}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//         <SubTree ID="EndingPosition"
+//                  _autoremap="true"/>
+//         <AlwaysSuccess name="AskForHelp"/>
+//       </Sequence>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <BehaviorTree ID="StartingPosition">
+//     <Fallback>
+//       <Sequence>
+//         <RetryUntilSuccessful num_attempts="3">
+//           <Fallback>
+//             <LAGetExt service_name="/GetExtension"
+//                       target_ext="{la_retract}"/>
+//             <LASetExtension action_name="/SetExtension"
+//                             target_extension="{la_retract}"/>
+//           </Fallback>
+//         </RetryUntilSuccessful>
+//       </Sequence>
+//       <AlwaysSuccess name="AskForHelp"/>
+//     </Fallback>
+//   </BehaviorTree>
+
+//   <!-- Description of Node Models (used by Groot) -->
+//   <TreeNodesModel>
+//     <Action ID="CheckPLS"
+//             editable="true">
+//       <output_port name="home_climbcycles"/>
+//     </Action>
+//     <Action ID="DownSubtract"
+//             editable="true">
+//       <input_port name="DOWN_subtract"
+//                   default="-1"/>
+//     </Action>
+//     <Condition ID="HeightDetection"
+//                editable="true">
+//       <input_port name="topic_name"/>
+//       <output_port name="climb_cycles"/>
+//     </Condition>
+//     <Action ID="LAGetExt"
+//             editable="true">
+//       <input_port name="service_name"
+//                   default="/GetExtension"/>
+//       <input_port name="target_ext"/>
+//     </Action>
+//     <Action ID="LASetExtension"
+//             editable="true">
+//       <input_port name="action_name"
+//                   default="/SetExtension"/>
+//       <input_port name="target_extension"/>
+//     </Action>
+//     <Action ID="UpSubtract"
+//             editable="true">
+//       <input_port name="UP_subtract"
+//                   default="-1"/>
+//     </Action>
+//   </TreeNodesModel>
+
+// </root>
+// )";
+
 static const char* xml_text = R"(
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4">
-  <BehaviorTree ID="ClampTest_SINGLE">
-    <Fallback>
-      <Repeat num_cycles="3">
-        <Sequence>
-          <SubTree ID="OpenUC&LC"/>
-          <Fallback>
-            <DMKEGetPosition node_id="3"
-                        service_name="/get_position"
-                        target_pos="100000"/>
-            <DMKESetPosition node_id="3"
-                             action_name="/set_position"
-                             target_position="100000"/>
-          </Fallback>
-          <Fallback>
-            <DMKEGetPosition node_id="3"
-                        service_name="/get_position"
-                        target_pos="0"/>
-            <DMKESetPosition node_id="3"
-                             action_name="/set_position"
-                             target_position="0"/>
-          </Fallback>
-        </Sequence>
-      </Repeat>
-      <AlwaysSuccess name="AskForHelp"/>
-    </Fallback>
-  </BehaviorTree>
-
-  <BehaviorTree ID="OpenUC&LC">
+  <BehaviorTree ID="ClimbDown">
     <Fallback>
       <Sequence>
-        <Fallback>
-          <DMKEGetPosition node_id="3"
-                      service_name="/get_position"
-                      target_pos="100000"/>
-          <DMKESetPosition node_id="3"
-                           action_name="/set_position"
-                           target_position="100000"/>
-        </Fallback>
-        <Fallback>
-          <DMKEGetPosition node_id="3"
-                      service_name="/get_position"
-                      target_pos="0"/>
-          <DMKESetPosition node_id="3"
-                           action_name="/set_position"
-                           target_position="0"/>
-        </Fallback>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        target_pos="{dmke_open}"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="{dmke_open}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        target_pos="{dmke_close}"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="{dmke_close}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        target_pos="{dmke_open}"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="{dmke_open}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        target_pos="{dmke_close}"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="{dmke_close}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <DownSubtract DOWN_subtract="-1"/>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
   </BehaviorTree>
 
+  <BehaviorTree ID="ClimbUp">
+    <Fallback>
+      <Sequence>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        target_pos="{dmke_open}"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="{dmke_open}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        target_pos="{dmke_close}"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="{dmke_close}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        target_pos="{dmke_open}"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="{dmke_open}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        target_pos="{dmke_close}"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="{dmke_close}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <UpSubtract UP_subtract="-1"/>
+      </Sequence>
+      <AlwaysSuccess name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="DoubleClampHD">
+    <Fallback>
+      <Sequence>
+        <Script code="dmke_open:=550000; dmke_close:=10000"/>
+        <SubTree ID="PowerLossScenario"
+                 _autoremap="true"/>
+        <Inverter>
+          <KeepRunningUntilFailure>
+            <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
+                             climb_cycles="{climb_cycles}"/>
+          </KeepRunningUntilFailure>
+        </Inverter>
+        <SubTree ID="StartingPosition"
+                 _autoremap="true"/>
+        <Repeat num_cycles="{climb_cycles}">
+          <SubTree ID="ClimbUp"
+                   _autoremap="true"/>
+        </Repeat>
+        <Delay delay_msec="10000">
+          <Repeat num_cycles="{climb_cycles}">
+            <SubTree ID="ClimbDown"
+                     _autoremap="true"/>
+          </Repeat>
+        </Delay>
+        <SubTree ID="EndingPosition"
+                 _autoremap="true"/>
+      </Sequence>
+      <AlwaysSuccess name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="EndingPosition">
+    <Fallback>
+      <Sequence>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        target_pos="{dmke_open}"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="{dmke_open}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        target_pos="{dmke_open}"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="{dmke_open}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+      </Sequence>
+      <AlwaysSuccess name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="PowerLossScenario">
+    <Fallback>
+      <CheckPLS home_climbcycles="{home_climbcycles}"/>
+      <Sequence>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        target_pos="{dmke_close}"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="{dmke_close}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        target_pos="{dmke_open}"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="{dmke_open}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        target_pos="{dmke_close}"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="{dmke_close}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <Repeat num_cycles="{home_climbcycles}">
+          <SubTree ID="ClimbDown"
+                   _autoremap="true"/>
+        </Repeat>
+        <SubTree ID="EndingPosition"
+                 _autoremap="true"/>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="StartingPosition">
+    <Fallback>
+      <Sequence>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        target_pos="{dmke_open}"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="{dmke_open}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        target_pos="{dmke_close}"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="{dmke_close}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+      </Sequence>
+      <AlwaysSuccess name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="CheckPLS"
+            editable="true">
+      <output_port name="home_climbcycles"/>
+    </Action>
+    <Action ID="DMKEGetPos"
+            editable="true">
+      <input_port name="node_id"/>
+      <input_port name="service_name"
+                  default="/get_position"/>
+      <input_port name="target_pos"/>
+    </Action>
+    <Action ID="DMKESetPosition"
+            editable="true">
+      <input_port name="node_id"/>
+      <input_port name="action_name"
+                  default="/set_position"/>
+      <input_port name="target_position"/>
+    </Action>
+    <Action ID="DownSubtract"
+            editable="true">
+      <input_port name="DOWN_subtract"
+                  default="-1"/>
+    </Action>
+    <Condition ID="HeightDetection"
+               editable="true">
+      <input_port name="topic_name"/>
+      <output_port name="climb_cycles"/>
+    </Condition>
+    <Action ID="UpSubtract"
+            editable="true">
+      <input_port name="UP_subtract"
+                  default="-1"/>
+    </Action>
+  </TreeNodesModel>
+
 </root>
 )";
-
-// <!-- Description of Node Models (used by Groot) -->
-//   <TreeNodesModel>
-//     <Action ID="DMKEGetPos"
-//             editable="true">
-//       <input_port name="node_id"/>
-//       <input_port name="service_name"
-//                   default="/get_position"/>
-//       <input_port name="target_pos"/>
-//     </Action>
-//     <Action ID="DMKESetPosition"
-//             editable="true">
-//       <input_port name="node_id"/>
-//       <input_port name="action_name"
-//                   default="/set_position"/>
-//       <input_port name="target_position"/>
-//     </Action>
-//   </TreeNodesModel>
-
-// <root BTCPP_format="4">
-//   <BehaviorTree ID="New0HDJIC">
-//     <Fallback>
-//       <Repeat num_cycles="3">
-//         <Sequence>
-//           <SubTree ID="OpenUC&amp;LC"/>
-//           <Fallback>
-//             <DMKEGetPos node_id="3"
-//                         target_pos="0"/>
-//             <DMKESetPosition node_id="3"
-//                              target_position="0"/>
-//           </Fallback>
-//           <Fallback>
-//             <DMKEGetPos node_id="2"
-//                         target_pos="0"/>
-//             <DMKESetPosition node_id="2"
-//                              target_position="0"/>
-//           </Fallback>
-//         </Sequence>
-//       </Repeat>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <BehaviorTree ID="OpenUC&amp;LC">
-//     <Fallback>
-//       <Sequence>
-//         <Fallback>
-//           <DMKEGetPos node_id="2"
-//                       target_pos="550000"/>
-//           <DMKESetPosition node_id="2"
-//                            target_position="550000"/>
-//         </Fallback>
-//         <Fallback>
-//           <DMKEGetPos node_id="3"
-//                       target_pos="550000"/>
-//           <DMKESetPosition node_id="3"
-//                            target_position="550000"/>
-//         </Fallback>
-//       </Sequence>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <!-- Description of Node Models (used by Groot) -->
-//   <TreeNodesModel>
-//     <Action ID="DMKEGetPos"
-//             editable="true">
-//       <input_port name="node_id"/>
-//       <input_port name="service_name"
-//                   default="/get_position"/>
-//       <input_port name="target_pos"/>
-//     </Action>
-//     <Action ID="DMKESetPosition"
-//             editable="true">
-//       <input_port name="node_id"/>
-//       <input_port name="action_name"
-//                   default="/set_position"/>
-//       <input_port name="target_position"/>
-//     </Action>
-//   </TreeNodesModel>
-
-// </root>
-
-// <root BTCPP_format="4">
-//   <BehaviorTree ID="ROSwithBT_test1">
-//     <Repeat num_cycles="2">
-//       <Sequence>
-//         <Delay delay_msec="3000">
-//           <Fallback>
-//             <GetPos service_name="/get_position" target_pos="500000"/>
-//             <DMKESetPosition action_name="/set_position" target_position="500000"/>
-//           </Fallback>
-//         </Delay>
-//         <Delay delay_msec="3000">
-//           <Fallback>
-//             <GetPos service_name="/get_position" target_pos="0"/>
-//             <DMKESetPosition action_name="/set_position" target_position="0"/>
-//           </Fallback>
-//         </Delay>
-//       </Sequence>
-//     </Repeat>
-//   </BehaviorTree>
-
-//   <!-- Description of Node Models (used by Groot) -->
-//   <TreeNodesModel/>
-
-// </root>
-
 
 int main(int argc, char **argv)
 {
@@ -907,19 +1421,22 @@ int main(int argc, char **argv)
   // setpos_params.default_port_value = "set_position_server";
 
   factory.registerNodeType<DMKESetPosition>("DMKESetPosition", setpos_params);
-  factory.registerNodeType<DMKEGetPosition>("DMKEGetPosition", setpos_params);
-  factory.registerNodeType<CylinderSetExtension>("CylinderSetExt", setpos_params);
-  factory.registerNodeType<CylinderGetExtension>("GetExt", setpos_params);
+  factory.registerNodeType<DMKEGetPosition>("DMKEGetPos", setpos_params);
+  factory.registerNodeType<CylinderSetExtension>("LASetExtension", setpos_params);
+  factory.registerNodeType<CylinderGetExtension>("LAGetExt", setpos_params);
   factory.registerNodeType<HeightDetection>("HeightDetection", setpos_params);
+  factory.registerNodeType<UpSubtract>("UpSubtract");
+  factory.registerNodeType<DownSubtract>("DownSubtract");
+  
+  // factory.registerNodeType<ClimbingSystemBlackboard>("ClimbingSystemBlackboard");
   factory.registerNodeType<CheckPLS>("CheckPLS");
   factory.registerNodeType<AskForHelp>("AskForHelp");
-  // factory.registerNodeType<DMKEGetPosService>("GetPosition", params);
 
   // Create the behavior tree using the XML description
   // auto tree = factory.createTreeFromText(xml_text);
 
   factory.registerBehaviorTreeFromText(xml_text);
-  auto tree = factory.createTree("ClampTest_SINGLE");
+  auto tree = factory.createTree("DoubleClampHD");
 
   // Run the behavior tree until it finishes
   tree.tickWhileRunning();

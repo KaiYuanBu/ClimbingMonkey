@@ -9,8 +9,6 @@
         <Action ID="ClimbingSystemBlackboard" editable="true">
             <output_port name="DMKE_open"/>
             <output_port name="DMKE_close"/>
-            <output_port name="LA_extend"/>
-            <inout_port name="LA_retract"/>
         </Action>
         <Action ID="DMKEGetPos" editable="true">
             <input_port name="node_id"/>
@@ -25,10 +23,6 @@
         <Action ID="DownSubtract" editable="true">
             <input_port name="DOWN_subtract" default="-1"/>
         </Action>
-        <Condition ID="HeightDetection" editable="true">
-            <input_port name="topic_name"/>
-            <output_port name="climb_cycles"/>
-        </Condition>
         <Action ID="LAGetExt" editable="true">
             <input_port name="service_name" default="/GetExtension"/>
             <input_port name="target_ext"/>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4" project_name="Project">
-    <include path="FullSysHD.xml"/>
+    <include path="DoubleClampHD.xml"/>
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
         <Action ID="CheckPLS" editable="true">
@@ -23,14 +23,6 @@
             <input_port name="topic_name"/>
             <output_port name="climb_cycles"/>
         </Condition>
-        <Action ID="LAGetExt" editable="true">
-            <input_port name="service_name" default="/GetExtension"/>
-            <input_port name="target_ext"/>
-        </Action>
-        <Action ID="LASetExtension" editable="true">
-            <input_port name="action_name" default="/SetExtension"/>
-            <input_port name="target_extension"/>
-        </Action>
         <Action ID="UpSubtract" editable="true">
             <input_port name="UP_subtract" default="-1"/>
         </Action>

@@ -106,45 +106,45 @@ class DMKEServers(Node):
 
         self.network = canopen.Network()
         self.network.connect(interface='seeedstudio', 
-                             channel='/dev/ttyUSB1', 
+                             channel='/dev/ttyUSB2', 
                              baudrate=115200, 
                              bitrate=500000)
 
         time.sleep(0.5)
-        # self.uc = DMKEServoDriver(self.network, 2)
+        self.uc = DMKEServoDriver(self.network, 2)
         self.lc = DMKEServoDriver(self.network, 3)
 
         # self.uc.NMT_Reset_Node()
-        # self.uc.NMT_Reset_Comm()
-
-        # self.uc.NMT_Pre_Op()
-        # self.uc.NMT_Start()
-
-        time.sleep(0.5)
+        self.uc.NMT_Reset_Comm()
 
         # self.lc.NMT_Reset_Node()
         self.lc.NMT_Reset_Comm()
+
+        self.uc.NMT_Pre_Op()
+        self.uc.NMT_Start()
+
+        time.sleep(0.5)
 
         self.lc.NMT_Pre_Op()
         self.lc.NMT_Start()
         time.sleep(0.5)
 
-        # self.uc.enable()
+        self.uc.enable()
         self.lc.enable()
 
         print("Setting positional control mode")
-        # self.uc.set_pos_control_mode()
+        self.uc.set_pos_control_mode()
         self.lc.set_pos_control_mode()
         time.sleep(0.5)
 
         print("Setting Parameters for position control mode")
-        # self.uc.set_profile_velocity(2500)
-        # self.uc.set_profile_acceleration(15000)
-        # self.uc.set_profile_deceleration(15000)
+        self.uc.set_profile_velocity(2500)
+        self.uc.set_profile_acceleration(15000)
+        self.uc.set_profile_deceleration(15000)
 
         self.lc.set_profile_velocity(2500)
-        self.lc.set_profile_acceleration(10000)
-        self.lc.set_profile_deceleration(10000)
+        self.lc.set_profile_acceleration(15000)
+        self.lc.set_profile_deceleration(15000)
         time.sleep(0.5)
             
 
@@ -193,7 +193,7 @@ class DMKEServers(Node):
             current_from_file = read_integer_from_file('MaxCurrent.txt')
 
             # Determine the success of the action
-            if abs(target_position - data_from_file) <= 7000 or current_from_file > 5000:
+            if abs(target_position - data_from_file) <= 10000 or current_from_file > 5000:
                 dmke_condition = True
                 save_integer_to_file(0, 'MaxCurrent.txt')
             else:
@@ -211,7 +211,6 @@ class DMKEServers(Node):
 
                 # checkNoS()
 
-
             else:
                 self.get_logger().info('Motor failed to reach target position')
                 goal_handle.abort()
@@ -226,8 +225,7 @@ class DMKEServers(Node):
     def get_position_callback(self, request, response):
         serv_node_id = request.node_id
         file_to_read = dmke_save_filepath(serv_node_id)
-        response.positiongot = read_integer_from_file(file_to_read)                                    # CHANGE
-        # self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c)) # CHANGE
+        response.positiongot = read_integer_from_file(file_to_read)
 
         return response
 
@@ -236,10 +234,10 @@ class DMKEServers(Node):
         starting_pos = read_integer_from_file(file_path)
         read_pos = instance.read_actual_pos()
 
-        if starting_pos - 5000 <= read_pos <= starting_pos + 5000:
+        if starting_pos - 2000 <= read_pos <= starting_pos + 2000:
             starting_pos = read_pos
 
-        if not (starting_pos - 5000 <= read_pos <= starting_pos + 5000):
+        if not (starting_pos - 2000 <= read_pos <= starting_pos + 2000):
             starting_pos = starting_pos
 
         if read_pos is None:
@@ -369,7 +367,7 @@ class DMKEServers(Node):
 ##### ==================== ---------- CYLINDER ----------  ==================== ####
 
 
-class CylinderServer(Node):
+class CylinderServers(Node):
     """MonKey Arm cylinder control wrapper for IDSServoDriver."""
 
     def __init__(self):
@@ -378,7 +376,7 @@ class CylinderServer(Node):
 
         self.declare_parameter('can_id', 1,
             ParameterDescriptor(description='CAN ID of the target driver.'))
-        self.declare_parameter('can_channel', '/dev/ttyUSB1',
+        self.declare_parameter('can_channel', '/dev/ttyUSB2',
             ParameterDescriptor(description='Channel of CAN tranceiver.'))
         # self.declare_parameter('can_baudrate', 2000000,
         self.declare_parameter('can_baudrate', 115200,
@@ -402,6 +400,8 @@ class CylinderServer(Node):
 
         # Initialize driver
         self.driver = IDSServoDriver(self.bus, self.can_id, name="Linear Actuator")
+        self.get_logger().info("Cylinder driver initialized with name 'Linear Actuator' ")
+
         self.driver.fault_reset()
         time.sleep(0.5)
         self.driver.set_positional_control_mode()
@@ -410,18 +410,18 @@ class CylinderServer(Node):
         self.action_server = ActionServer(self, SetExtension, 'SetExtension', self.action_callback)
 
         # Declare Service server
-        self.srv = self.create_service(GetExtension, 'GetExtension', self.get_extension_callback)
-        self.get_logger().info('GetExtension Server is ready!')
+        self.service_server = self.create_service(GetExtension, 'GetExtension', self.get_extension_callback)
+        # self.get_logger().info('GetExtension Server is ready!')
 
         # Start message
-        self.get_logger().info(f"SetExtension Server started")
+        self.get_logger().info(">>>>>>>>>> CYLINDER SERVERS INITIALIZED <<<<<<<<<<")
 
     def action_callback(self, goal_handle, filepath='saved_extension.txt'):
         """Callback for set extension action."""
         
         target_extension = goal_handle.request.target_extension
 
-        if target_extension < 0 or target_extension > 1.3:
+        if target_extension < 0 or target_extension > 1.2:
             goal_handle.abort()
             result = SetExtension.Result()
             result.success_ext = False
@@ -432,7 +432,7 @@ class CylinderServer(Node):
             self.get_logger().info("Executing goal...")
             real_target = self.real_ext(target_extension, filepath)
           
-            self.driver.set_extension(real_target, 20, False)
+            self.driver.set_extension(real_target, 10, False)
 
             self.monitor_extension(goal_handle, filepath)
 
@@ -464,9 +464,9 @@ class CylinderServer(Node):
             return result
 
     
-    def get_extension_callback(self, response):
+    def get_extension_callback(self, request, response):
         # node_id = request.node_id.to_bytes(1, byteorder='little')
-        response.extension = read_value_from_file('saved_extension.txt')
+        response.extensiongot = read_value_from_file('saved_extension.txt')
        
         return response
 
@@ -483,10 +483,21 @@ class CylinderServer(Node):
         if read_ext is None:
             starting_ext2 = starting_ext
 
+        if starting_ext2 < 0.0:
+            self.driver.disable()
+            print("Starting Extension Value is < 0, Stopping Operation...")
+
         print(f"Current Extension: {starting_ext2}")
         real_target_ext = read_ext + (target_ext - starting_ext2)
-        print(f"TARGET EXTENSION DIFFERENCE = {real_target_ext}")
-        return real_target_ext
+
+        if real_target_ext > 1.3 or real_target_ext < 0.0:
+            self.driver.disable()
+            print(f"Real Target Extension Over Limit: {real_target_ext}")
+            return None
+        
+        else:
+            print(f"TARGET EXTENSION DIFFERENCE = {real_target_ext}")
+            return real_target_ext
 
 
     def monitor_extension(self, goal_handle, filepath, interval = 0.05):
@@ -535,8 +546,12 @@ class CylinderServer(Node):
 
                     if actual_ext == prev_ext:
                         count += 1
+                        file_ext = read_value_from_file(filepath)
+                        print(f"Actual extension: {file_ext}")
+                        feedback_msg.current_extension = file_ext
+                        save_value_to_file(file_ext, filepath)
 
-                    if count > 30:
+                    if count > 60:
                         self.driver.disable()
                         print("..........EXTENSION FAILED..........")
                         break

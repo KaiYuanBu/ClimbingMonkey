@@ -15,14 +15,6 @@
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
-            <LAGetExt service_name="/GetExtension"
-                      target_ext="{la_extend}"/>
-            <LASetExtension action_name="/SetExtension"
-                            target_extension="{la_extend}"/>
-          </Fallback>
-        </RetryUntilSuccessful>
-        <RetryUntilSuccessful num_attempts="3">
-          <Fallback>
             <DMKEGetPos node_id="3"
                         service_name="/get_position"
                         target_pos="{dmke_close}"/>
@@ -39,14 +31,6 @@
             <DMKESetPosition node_id="2"
                              action_name="/set_position"
                              target_position="{dmke_open}"/>
-          </Fallback>
-        </RetryUntilSuccessful>
-        <RetryUntilSuccessful num_attempts="3">
-          <Fallback>
-            <LAGetExt service_name="/GetExtension"
-                      target_ext="{la_retract}"/>
-            <LASetExtension action_name="/SetExtension"
-                            target_extension="{la_retract}"/>
           </Fallback>
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
@@ -80,14 +64,6 @@
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
-            <LAGetExt service_name="/GetExtension"
-                      target_ext="{la_extend}"/>
-            <LASetExtension action_name="/SetExtension"
-                            target_extension="{la_extend}"/>
-          </Fallback>
-        </RetryUntilSuccessful>
-        <RetryUntilSuccessful num_attempts="3">
-          <Fallback>
             <DMKEGetPos node_id="2"
                         service_name="/get_position"
                         target_pos="{dmke_close}"/>
@@ -108,14 +84,6 @@
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
-            <LAGetExt service_name="/GetExtension"
-                      target_ext="{la_retract}"/>
-            <LASetExtension action_name="/SetExtension"
-                            target_extension="{la_retract}"/>
-          </Fallback>
-        </RetryUntilSuccessful>
-        <RetryUntilSuccessful num_attempts="3">
-          <Fallback>
             <DMKEGetPos node_id="3"
                         service_name="/get_position"
                         target_pos="{dmke_close}"/>
@@ -125,6 +93,37 @@
           </Fallback>
         </RetryUntilSuccessful>
         <UpSubtract UP_subtract="-1"/>
+      </Sequence>
+      <AlwaysSuccess name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="DoubleClampHD">
+    <Fallback>
+      <Sequence>
+        <Script code="dmke_open:=550000; dmke_close:=10000"/>
+        <SubTree ID="PowerLossScenario"
+                 _autoremap="true"/>
+        <Inverter>
+          <KeepRunningUntilFailure>
+            <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
+                             climb_cycles="{climb_cycles}"/>
+          </KeepRunningUntilFailure>
+        </Inverter>
+        <SubTree ID="StartingPosition"
+                 _autoremap="true"/>
+        <Repeat num_cycles="{climb_cycles}">
+          <SubTree ID="ClimbUp"
+                   _autoremap="true"/>
+        </Repeat>
+        <Delay delay_msec="10000">
+          <Repeat num_cycles="{climb_cycles}">
+            <SubTree ID="ClimbDown"
+                     _autoremap="true"/>
+          </Repeat>
+        </Delay>
+        <SubTree ID="EndingPosition"
+                 _autoremap="true"/>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
@@ -153,45 +152,6 @@
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <RetryUntilSuccessful num_attempts="3">
-          <Fallback>
-            <LAGetExt service_name="/GetExtension"
-                      target_ext="0.01"/>
-            <LASetExtension action_name="/SetExtension"
-                            target_extension="0.01"/>
-          </Fallback>
-        </RetryUntilSuccessful>
-      </Sequence>
-      <AlwaysSuccess name="AskForHelp"/>
-    </Fallback>
-  </BehaviorTree>
-
-  <BehaviorTree ID="FullSysHD">
-    <Fallback>
-      <Sequence>
-        <SubTree ID="PowerLossScenario"
-                 _autoremap="true"/>
-        <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.0; la_retract:=0.1"/>
-        <Inverter>
-          <KeepRunningUntilFailure>
-            <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
-                             climb_cycles="{climb_cycles}"/>
-          </KeepRunningUntilFailure>
-        </Inverter>
-        <SubTree ID="StartingPosition"
-                 _autoremap="true"/>
-        <Repeat num_cycles="{climb_cycles}">
-          <SubTree ID="ClimbUp"
-                   _autoremap="true"/>
-        </Repeat>
-        <Delay delay_msec="10000">
-          <Repeat num_cycles="{climb_cycles}">
-            <SubTree ID="ClimbDown"
-                     _autoremap="true"/>
-          </Repeat>
-        </Delay>
-        <SubTree ID="EndingPosition"
-                 _autoremap="true"/>
       </Sequence>
       <AlwaysSuccess name="AskForHelp"/>
     </Fallback>
@@ -223,14 +183,6 @@
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
-            <LAGetExt service_name="/GetExtension"
-                      target_ext="{la_retract}"/>
-            <LASetExtension action_name="/SetExtension"
-                            target_extension="{la_retract}"/>
-          </Fallback>
-        </RetryUntilSuccessful>
-        <RetryUntilSuccessful num_attempts="3">
-          <Fallback>
             <DMKEGetPos node_id="2"
                         service_name="/get_position"
                         target_pos="{dmke_close}"/>
@@ -241,9 +193,10 @@
         </RetryUntilSuccessful>
         <Repeat num_cycles="{home_climbcycles}">
           <SubTree ID="ClimbDown"
-                   _autoremap="false"/>
+                   _autoremap="true"/>
         </Repeat>
-        <SubTree ID="EndingPosition"/>
+        <SubTree ID="EndingPosition"
+                 _autoremap="true"/>
         <AlwaysSuccess name="AskForHelp"/>
       </Sequence>
     </Fallback>
@@ -270,14 +223,6 @@
             <DMKESetPosition node_id="3"
                              action_name="/set_position"
                              target_position="{dmke_close}"/>
-          </Fallback>
-        </RetryUntilSuccessful>
-        <RetryUntilSuccessful num_attempts="3">
-          <Fallback>
-            <LAGetExt service_name="/GetExtension"
-                      target_ext="{la_retract}"/>
-            <LASetExtension action_name="/SetExtension"
-                            target_extension="{la_retract}"/>
           </Fallback>
         </RetryUntilSuccessful>
       </Sequence>
@@ -315,18 +260,6 @@
       <input_port name="topic_name"/>
       <output_port name="climb_cycles"/>
     </Condition>
-    <Action ID="LAGetExt"
-            editable="true">
-      <input_port name="service_name"
-                  default="/GetExtension"/>
-      <input_port name="target_ext"/>
-    </Action>
-    <Action ID="LASetExtension"
-            editable="true">
-      <input_port name="action_name"
-                  default="/SetExtension"/>
-      <input_port name="target_extension"/>
-    </Action>
     <Action ID="UpSubtract"
             editable="true">
       <input_port name="UP_subtract"
