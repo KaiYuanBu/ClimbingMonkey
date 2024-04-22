@@ -624,10 +624,10 @@ public:
 };
 
 
-class AskForHelp : public AlwaysFailureNode {
+class AskForHelp : public AlwaysSuccessNode {
 public:
     AskForHelp(const std::string& name)
-        : AlwaysFailureNode(name) {}
+        : AlwaysSuccessNode(name) {}
 
     // static PortsList providedPorts()
     // {
@@ -688,459 +688,12 @@ public:
     
 };
 
-
-// class ClimbingSystemBlackboard : public SyncActionNode{
-// public:
-//   ClimbingSystemBlackboard(const std::string& name, const NodeConfig& config)
-//     : SyncActionNode(name, config)
-//   {}
-
-//   static PortsList providedPorts()
-//   {
-//     return {OutputPort<int>("DMKE_open"),
-//             OutputPort<int>("DMKE_close")
-//             // OutputPort<float>("LA_extend"),
-//             // OutputPort<float>("LA_retract")
-//             };
-//   }
-
-//   BT::NodeStatus tick() override
-//   {
-//     if (DMKEopen > 650000 || DMKEclose < -20000 || LAextend > 1.3 || LAretract < 0.0)
-//     {
-//       std::cout << "MOTOR/ACTUATOR VALUES EXCEEDED LIMIT (SETBLACKBOARD FAILURE) \n";
-//       std::cout << "DMKE_open: " << DMKEopen << "\n";
-//       std::cout << "DMKE_close: " << DMKEclose << "\n";
-//       std::cout << "LA_extend: " << LAextend << "\n";
-//       std::cout << "LA_retract: " << LAretract << "\n";
-//       std::cout << "-----PLEASE REVISE THE VALUES-----" << std::endl;
-
-//       return NodeStatus::FAILURE;
-//     }
-
-//     else 
-//     {
-//       setOutput("DMKE_open", DMKEopen);
-//       setOutput("DMKE_close", DMKEclose);
-//       // setOutput("LA_extend", LAextend);
-//       // setOutput("LA_retract", LAretract);
-
-//       std::cout << "MOTOR/ACTUATOR VALUES SUCCESSFULLY SET (SETBLACKBOARD SUCCESS)\n";
-//       std::cout << "DMKE_open: " << DMKEopen << "\n";
-//       std::cout << "DMKE_close: " << DMKEclose << "\n";
-//       std::cout << "LA_extend: " << LAextend << "\n";
-//       std::cout << "LA_retract: " << LAretract << std::endl;
-    
-//       return NodeStatus::SUCCESS;
-//     }
-//   }
-// };
-
-// static const char* xml_text = R"(
-// <?xml version="1.0" encoding="UTF-8"?>
-// <root BTCPP_format="4">
-//   <BehaviorTree ID="GetPosTest">
-//     <Repeat num_cycles="2">
-//       <Sequence>
-//         <DMKEGetPos node="2" service_name="/get_position" target_pos="0"/>
-//         <DMKEGetPos node="2" service_name="/get_position" target_pos="500000"/>
-//       </Sequence>
-//     </Repeat>
-//   </BehaviorTree>
-
-//   <!-- Description of Node Models (used by Groot) -->
-//   <TreeNodesModel>
-//     <Action ID="DMKEGetPos"
-//             editable="true">
-//       <input_port name="node"/>
-//       <input_port name="service_name"
-//                   default="/get_position"/>
-//       <input_port name="target_pos"/>
-//     </Action>
-//   </TreeNodesModel>
-
-// </root>
-// )";
-
-
-// static const char* xml_text = R"(
-// <?xml version="1.0" encoding="UTF-8"?>
-// <root BTCPP_format="4">
-//   <BehaviorTree ID="ClimbDown">
-//     <Fallback>
-//       <Sequence>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="3"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_open}"/>
-//             <DMKESetPosition node_id="3"
-//                              action_name="/set_position"
-//                              target_position="{dmke_open}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="3"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_close}"/>
-//             <DMKESetPosition node_id="3"
-//                              action_name="/set_position"
-//                              target_position="{dmke_close}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="2"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_open}"/>
-//             <DMKESetPosition node_id="2"
-//                              action_name="/set_position"
-//                              target_position="{dmke_open}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="2"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_close}"/>
-//             <DMKESetPosition node_id="2"
-//                              action_name="/set_position"
-//                              target_position="{dmke_close}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//       </Sequence>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <BehaviorTree ID="ClimbUp">
-//     <Fallback>
-//       <Sequence>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="2"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_open}"/>
-//             <DMKESetPosition node_id="2"
-//                              action_name="/set_position"
-//                              target_position="{dmke_open}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="2"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_close}"/>
-//             <DMKESetPosition node_id="2"
-//                              action_name="/set_position"
-//                              target_position="{dmke_close}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="3"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_open}"/>
-//             <DMKESetPosition node_id="3"
-//                              action_name="/set_position"
-//                              target_position="{dmke_open}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="3"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_close}"/>
-//             <DMKESetPosition node_id="3"
-//                              action_name="/set_position"
-//                              target_position="{dmke_close}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//       </Sequence>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <BehaviorTree ID="DoubleClamp">
-//     <Fallback>
-//       <Sequence>
-//         <Script code="dmke_open:=550000; dmke_close:=10000"/>
-//         <SubTree ID="StartingPosition"
-//                  _autoremap="true"/>
-//         <Repeat num_cycles="3">
-//           <SubTree ID="ClimbUp"
-//                    _autoremap="true"/>
-//         </Repeat>
-//         <Delay delay_msec="10000">
-//           <Repeat num_cycles="3">
-//             <SubTree ID="ClimbDown"
-//                      _autoremap="true"/>
-//           </Repeat>
-//         </Delay>
-//         <SubTree ID="EndingPosition"
-//                  _autoremap="true"/>
-//       </Sequence>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <BehaviorTree ID="EndingPosition">
-//     <Fallback>
-//       <Sequence>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="2"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_open}"/>
-//             <DMKESetPosition node_id="2"
-//                              action_name="/set_position"
-//                              target_position="{dmke_open}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="3"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_open}"/>
-//             <DMKESetPosition node_id="3"
-//                              action_name="/set_position"
-//                              target_position="{dmke_open}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//       </Sequence>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <BehaviorTree ID="StartingPosition">
-//     <Fallback>
-//       <Sequence>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="2"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_open}"/>
-//             <DMKESetPosition node_id="2"
-//                              action_name="/set_position"
-//                              target_position="{dmke_open}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <DMKEGetPos node_id="3"
-//                         service_name="/get_position"
-//                         target_pos="{dmke_close}"/>
-//             <DMKESetPosition node_id="3"
-//                              action_name="/set_position"
-//                              target_position="{dmke_close}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//       </Sequence>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <!-- Description of Node Models (used by Groot) -->
-//   <TreeNodesModel>
-//     <Action ID="DMKEGetPos"
-//             editable="true">
-//       <input_port name="node_id"/>
-//       <input_port name="service_name"
-//                   default="/get_position"/>
-//       <input_port name="target_pos"/>
-//     </Action>
-//     <Action ID="DMKESetPosition"
-//             editable="true">
-//       <input_port name="node_id"/>
-//       <input_port name="action_name"
-//                   default="/set_position"/>
-//       <input_port name="target_position"/>
-//     </Action>
-//   </TreeNodesModel>
-
-// </root>
-// )";
-
-// static const char* xml_text = R"(
-// <?xml version="1.0" encoding="UTF-8"?>
-// <root BTCPP_format="4">
-//   <BehaviorTree ID="ClimbDown">
-//     <Fallback>
-//       <Sequence>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <LAGetExt service_name="/GetExtension"
-//                       target_ext="{la_extend}"/>
-//             <LASetExtension action_name="/SetExtension"
-//                             target_extension="{la_extend}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <LAGetExt service_name="/GetExtension"
-//                       target_ext="{la_retract}"/>
-//             <LASetExtension action_name="/SetExtension"
-//                             target_extension="{la_retract}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <DownSubtract DOWN_subtract="-1"/>
-//       </Sequence>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <BehaviorTree ID="ClimbUp">
-//     <Fallback>
-//       <Sequence>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <LAGetExt service_name="/GetExtension"
-//                       target_ext="{la_extend}"/>
-//             <LASetExtension action_name="/SetExtension"
-//                             target_extension="{la_extend}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <LAGetExt service_name="/GetExtension"
-//                       target_ext="{la_retract}"/>
-//             <LASetExtension action_name="/SetExtension"
-//                             target_extension="{la_retract}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <UpSubtract UP_subtract="-1"/>
-//       </Sequence>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <BehaviorTree ID="EndingPosition">
-//     <Fallback>
-//       <Sequence>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <LAGetExt service_name="/GetExtension"
-//                       target_ext="0.0"/>
-//             <LASetExtension action_name="/SetExtension"
-//                             target_extension="0.0"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//       </Sequence>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <BehaviorTree ID="LAHD">
-//     <Fallback>
-//       <Sequence>
-//         <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.0; la_retract:=0.1"/>
-//         <SubTree ID="PowerLossScenario"
-//                  _autoremap="true"/>
-//         <Inverter>
-//           <KeepRunningUntilFailure>
-//             <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
-//                              climb_cycles="{climb_cycles}"/>
-//           </KeepRunningUntilFailure>
-//         </Inverter>
-//         <SubTree ID="StartingPosition"
-//                  _autoremap="true"/>
-//         <Repeat num_cycles="{climb_cycles}">
-//           <SubTree ID="ClimbUp"
-//                    _autoremap="true"/>
-//         </Repeat>
-//         <Delay delay_msec="10000">
-//           <Repeat num_cycles="{climb_cycles}">
-//             <SubTree ID="ClimbDown"
-//                      _autoremap="true"/>
-//           </Repeat>
-//         </Delay>
-//         <SubTree ID="EndingPosition"
-//                  _autoremap="true"/>
-//       </Sequence>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <BehaviorTree ID="PowerLossScenario">
-//     <Fallback>
-//       <CheckPLS home_climbcycles="{home_climbcycles}"/>
-//       <Sequence>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <LAGetExt service_name="/GetExtension"
-//                       target_ext="{la_retract}"/>
-//             <LASetExtension action_name="/SetExtension"
-//                             target_extension="{la_retract}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//         <SubTree ID="EndingPosition"
-//                  _autoremap="true"/>
-//         <AlwaysSuccess name="AskForHelp"/>
-//       </Sequence>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <BehaviorTree ID="StartingPosition">
-//     <Fallback>
-//       <Sequence>
-//         <RetryUntilSuccessful num_attempts="3">
-//           <Fallback>
-//             <LAGetExt service_name="/GetExtension"
-//                       target_ext="{la_retract}"/>
-//             <LASetExtension action_name="/SetExtension"
-//                             target_extension="{la_retract}"/>
-//           </Fallback>
-//         </RetryUntilSuccessful>
-//       </Sequence>
-//       <AlwaysSuccess name="AskForHelp"/>
-//     </Fallback>
-//   </BehaviorTree>
-
-//   <!-- Description of Node Models (used by Groot) -->
-//   <TreeNodesModel>
-//     <Action ID="CheckPLS"
-//             editable="true">
-//       <output_port name="home_climbcycles"/>
-//     </Action>
-//     <Action ID="DownSubtract"
-//             editable="true">
-//       <input_port name="DOWN_subtract"
-//                   default="-1"/>
-//     </Action>
-//     <Condition ID="HeightDetection"
-//                editable="true">
-//       <input_port name="topic_name"/>
-//       <output_port name="climb_cycles"/>
-//     </Condition>
-//     <Action ID="LAGetExt"
-//             editable="true">
-//       <input_port name="service_name"
-//                   default="/GetExtension"/>
-//       <input_port name="target_ext"/>
-//     </Action>
-//     <Action ID="LASetExtension"
-//             editable="true">
-//       <input_port name="action_name"
-//                   default="/SetExtension"/>
-//       <input_port name="target_extension"/>
-//     </Action>
-//     <Action ID="UpSubtract"
-//             editable="true">
-//       <input_port name="UP_subtract"
-//                   default="-1"/>
-//     </Action>
-//   </TreeNodesModel>
-
-// </root>
-// )";
-
 static const char* xml_text = R"(
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4">
   <BehaviorTree ID="ClimbDown">
-    <Fallback>
-      <Sequence>
+    <Sequence>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="3"
@@ -1151,6 +704,20 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext="{la_extend}"/>
+            <LASetExtension action_name="/SetExtension"
+                            target_extension="{la_extend}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="3"
@@ -1161,6 +728,9 @@ static const char* xml_text = R"(
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="2"
@@ -1171,6 +741,20 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext="{la_retract}"/>
+            <LASetExtension action_name="/SetExtension"
+                            target_extension="{la_retract}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="2"
@@ -1181,15 +765,15 @@ static const char* xml_text = R"(
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <DownSubtract DOWN_subtract="-1"/>
-      </Sequence>
-      <AlwaysSuccess name="AskForHelp"/>
-    </Fallback>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <DownSubtract DOWN_subtract="-1"/>
+    </Sequence>
   </BehaviorTree>
 
   <BehaviorTree ID="ClimbUp">
-    <Fallback>
-      <Sequence>
+    <Sequence>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="2"
@@ -1200,6 +784,20 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext="{la_extend}"/>
+            <LASetExtension action_name="/SetExtension"
+                            target_extension="{la_extend}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="2"
@@ -1210,6 +808,9 @@ static const char* xml_text = R"(
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="3"
@@ -1220,6 +821,20 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext="{la_retract}"/>
+            <LASetExtension action_name="/SetExtension"
+                            target_extension="{la_retract}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="3"
@@ -1230,46 +845,15 @@ static const char* xml_text = R"(
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <UpSubtract UP_subtract="-1"/>
-      </Sequence>
-      <AlwaysSuccess name="AskForHelp"/>
-    </Fallback>
-  </BehaviorTree>
-
-  <BehaviorTree ID="DoubleClampHD">
-    <Fallback>
-      <Sequence>
-        <Script code="dmke_open:=550000; dmke_close:=10000"/>
-        <SubTree ID="PowerLossScenario"
-                 _autoremap="true"/>
-        <Inverter>
-          <KeepRunningUntilFailure>
-            <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
-                             climb_cycles="{climb_cycles}"/>
-          </KeepRunningUntilFailure>
-        </Inverter>
-        <SubTree ID="StartingPosition"
-                 _autoremap="true"/>
-        <Repeat num_cycles="{climb_cycles}">
-          <SubTree ID="ClimbUp"
-                   _autoremap="true"/>
-        </Repeat>
-        <Delay delay_msec="10000">
-          <Repeat num_cycles="{climb_cycles}">
-            <SubTree ID="ClimbDown"
-                     _autoremap="true"/>
-          </Repeat>
-        </Delay>
-        <SubTree ID="EndingPosition"
-                 _autoremap="true"/>
-      </Sequence>
-      <AlwaysSuccess name="AskForHelp"/>
-    </Fallback>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <UpSubtract UP_subtract="-1"/>
+    </Sequence>
   </BehaviorTree>
 
   <BehaviorTree ID="EndingPosition">
-    <Fallback>
-      <Sequence>
+    <Sequence>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="2"
@@ -1280,6 +864,9 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="3"
@@ -1290,9 +877,57 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-      </Sequence>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext="{la_retract}"/>
+            <LASetExtension action_name="/SetExtension"
+                            target_extension="{la_retract}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="LATimeTest">
+    <Sequence>
+      <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.1; la_retract:=0.05"/>
+      <Repeat num_cycles="5">
+        <Delay delay_msec="5000">
+          <Sequence>
+            <Fallback>
+              <RetryUntilSuccessful num_attempts="3">
+                <Fallback>
+                  <LAGetExt service_name="/GetExtension"
+                            target_ext="{la_extend}"/>
+                  <LASetExtension action_name="/SetExtension"
+                                  target_extension="{la_extend}"/>
+                </Fallback>
+              </RetryUntilSuccessful>
+              <AlwaysSuccess name="AskForHelp"/>
+            </Fallback>
+            <Delay delay_msec="5000">
+              <Fallback>
+                <RetryUntilSuccessful num_attempts="3">
+                  <Fallback>
+                    <LAGetExt service_name="/GetExtension"
+                              target_ext="{la_retract}"/>
+                    <LASetExtension action_name="/SetExtension"
+                                    target_extension="{la_retract}"/>
+                  </Fallback>
+                </RetryUntilSuccessful>
+                <AlwaysSuccess name="AskForHelp"/>
+              </Fallback>
+            </Delay>
+          </Sequence>
+        </Delay>
+      </Repeat>
       <AlwaysSuccess name="AskForHelp"/>
-    </Fallback>
+    </Sequence>
   </BehaviorTree>
 
   <BehaviorTree ID="PowerLossScenario">
@@ -1321,6 +956,14 @@ static const char* xml_text = R"(
         </RetryUntilSuccessful>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext="{la_retract}"/>
+            <LASetExtension action_name="/SetExtension"
+                            target_extension="{la_retract}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
             <DMKEGetPos node_id="2"
                         service_name="/get_position"
                         target_pos="{dmke_close}"/>
@@ -1331,18 +974,17 @@ static const char* xml_text = R"(
         </RetryUntilSuccessful>
         <Repeat num_cycles="{home_climbcycles}">
           <SubTree ID="ClimbDown"
-                   _autoremap="true"/>
+                   _autoremap="false"/>
         </Repeat>
-        <SubTree ID="EndingPosition"
-                 _autoremap="true"/>
+        <SubTree ID="EndingPosition"/>
         <AlwaysSuccess name="AskForHelp"/>
       </Sequence>
     </Fallback>
   </BehaviorTree>
 
   <BehaviorTree ID="StartingPosition">
-    <Fallback>
-      <Sequence>
+    <Sequence>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="2"
@@ -1353,6 +995,9 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="3"
@@ -1363,9 +1008,20 @@ static const char* xml_text = R"(
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-      </Sequence>
-      <AlwaysSuccess name="AskForHelp"/>
-    </Fallback>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+      <Fallback>
+        <RetryUntilSuccessful num_attempts="3">
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext="{la_retract}"/>
+            <LASetExtension action_name="/SetExtension"
+                            target_extension="{la_retract}"/>
+          </Fallback>
+        </RetryUntilSuccessful>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Fallback>
+    </Sequence>
   </BehaviorTree>
 
   <!-- Description of Node Models (used by Groot) -->
@@ -1393,11 +1049,18 @@ static const char* xml_text = R"(
       <input_port name="DOWN_subtract"
                   default="-1"/>
     </Action>
-    <Condition ID="HeightDetection"
-               editable="true">
-      <input_port name="topic_name"/>
-      <output_port name="climb_cycles"/>
-    </Condition>
+    <Action ID="LAGetExt"
+            editable="true">
+      <input_port name="service_name"
+                  default="/GetExtension"/>
+      <input_port name="target_ext"/>
+    </Action>
+    <Action ID="LASetExtension"
+            editable="true">
+      <input_port name="action_name"
+                  default="/SetExtension"/>
+      <input_port name="target_extension"/>
+    </Action>
     <Action ID="UpSubtract"
             editable="true">
       <input_port name="UP_subtract"
@@ -1436,7 +1099,7 @@ int main(int argc, char **argv)
   // auto tree = factory.createTreeFromText(xml_text);
 
   factory.registerBehaviorTreeFromText(xml_text);
-  auto tree = factory.createTree("DoubleClampHD");
+  auto tree = factory.createTree("LATimeTest");
 
   // Run the behavior tree until it finishes
   tree.tickWhileRunning();

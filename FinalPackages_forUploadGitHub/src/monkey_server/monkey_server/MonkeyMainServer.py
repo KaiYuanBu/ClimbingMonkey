@@ -106,7 +106,7 @@ class DMKEServers(Node):
 
         self.network = canopen.Network()
         self.network.connect(interface='seeedstudio', 
-                             channel='/dev/ttyUSB2', 
+                             channel='/dev/ttyUSB3', 
                              baudrate=115200, 
                              bitrate=500000)
 
@@ -376,7 +376,7 @@ class CylinderServers(Node):
 
         self.declare_parameter('can_id', 1,
             ParameterDescriptor(description='CAN ID of the target driver.'))
-        self.declare_parameter('can_channel', '/dev/ttyUSB2',
+        self.declare_parameter('can_channel', '/dev/ttyUSB3',
             ParameterDescriptor(description='Channel of CAN tranceiver.'))
         # self.declare_parameter('can_baudrate', 2000000,
         self.declare_parameter('can_baudrate', 115200,
@@ -490,7 +490,7 @@ class CylinderServers(Node):
         print(f"Current Extension: {starting_ext2}")
         real_target_ext = read_ext + (target_ext - starting_ext2)
 
-        if real_target_ext > 1.3 or real_target_ext < 0.0:
+        if real_target_ext > 1.2 or real_target_ext < -1.2:
             self.driver.disable()
             print(f"Real Target Extension Over Limit: {real_target_ext}")
             return None
@@ -580,17 +580,17 @@ class CylinderServers(Node):
 def main(args=None):
     rclpy.init(args=args)
     # motor_init_server = MotorInit()
-    DMKE_servers = DMKEServers()
-    # Cylinder_servers = CylinderServers()
+    # DMKE_servers = DMKEServers()
+    Cylinder_servers = CylinderServers()
 
     try:
-        rclpy.spin(DMKE_servers)
-        # rclpy.spin(Cylinder_servers)
+        # rclpy.spin(DMKE_servers)
+        rclpy.spin(Cylinder_servers)
 
     # network.disconnect()
     except KeyboardInterrupt:
-        DMKE_servers.destroy_node()
-        # Cylinder_servers.destroy_node()
+        # DMKE_servers.destroy_node()
+        Cylinder_servers.destroy_node()
         rclpy.shutdown()
 
 if __name__ == '__main__':
