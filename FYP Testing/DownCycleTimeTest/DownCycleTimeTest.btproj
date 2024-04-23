@@ -27,6 +27,7 @@
             <input_port name="action_name" default="/SetExtension"/>
             <input_port name="target_extension"/>
         </Action>
+        <Action ID="ROS2_shutdown" editable="true"/>
         <Action ID="UpSubtract" editable="true">
             <input_port name="UP_subtract" default="-1"/>
         </Action>

@@ -13,7 +13,7 @@
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -24,7 +24,7 @@
                             target_extension="{la_extend}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -37,7 +37,7 @@
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -50,7 +50,7 @@
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -61,7 +61,7 @@
                             target_extension="{la_retract}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -74,7 +74,7 @@
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <DownSubtract DOWN_subtract="-1"/>
     </Sequence>
@@ -93,7 +93,7 @@
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -104,7 +104,7 @@
                             target_extension="{la_extend}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -117,7 +117,7 @@
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -130,7 +130,7 @@
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -141,7 +141,7 @@
                             target_extension="{la_retract}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -154,7 +154,7 @@
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <UpSubtract UP_subtract="-1"/>
     </Sequence>
@@ -173,7 +173,7 @@
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -186,7 +186,7 @@
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -197,37 +197,8 @@
                             target_extension="{la_retract}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
-    </Sequence>
-  </BehaviorTree>
-
-  <BehaviorTree ID="New001">
-    <Sequence>
-      <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.1; la_retract:=0.05"/>
-      <SubTree ID="PowerLossScenario"
-               _autoremap="true"/>
-      <Inverter>
-        <KeepRunningUntilFailure>
-          <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
-                           climb_cycles="{climb_cycles}"/>
-        </KeepRunningUntilFailure>
-      </Inverter>
-      <SubTree ID="StartingPosition"
-               _autoremap="true"/>
-      <Repeat num_cycles="{climb_cycles}">
-        <SubTree ID="ClimbUp"
-                 _autoremap="true"/>
-      </Repeat>
-      <Delay delay_msec="10000">
-        <Repeat num_cycles="{climb_cycles}">
-          <SubTree ID="ClimbDown"
-                   _autoremap="true"/>
-        </Repeat>
-      </Delay>
-      <SubTree ID="EndingPosition"
-               _autoremap="true"/>
-      <ROS2_shutdown/>
     </Sequence>
   </BehaviorTree>
 
@@ -275,11 +246,10 @@
         </RetryUntilSuccessful>
         <Repeat num_cycles="{home_climbcycles}">
           <SubTree ID="ClimbDown"
-                   _autoremap="true"/>
+                   _autoremap="false"/>
         </Repeat>
-        <SubTree ID="EndingPosition"
-                 _autoremap="true"/>
-        <ROS2_shutdown/>
+        <SubTree ID="EndingPosition"/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Sequence>
     </Fallback>
   </BehaviorTree>
@@ -297,7 +267,7 @@
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -310,7 +280,7 @@
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -321,8 +291,17 @@
                             target_extension="{la_retract}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="UPStartingPos">
+    <Sequence>
+      <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.1; la_retract:=0.05"/>
+      <SubTree ID="StartingPosition"
+               _autoremap="true"/>
+      <AlwaysSuccess name="AskForHelp"/>
     </Sequence>
   </BehaviorTree>
 
@@ -351,11 +330,6 @@
       <input_port name="DOWN_subtract"
                   default="-1"/>
     </Action>
-    <Condition ID="HeightDetection"
-               editable="true">
-      <input_port name="topic_name"/>
-      <output_port name="climb_cycles"/>
-    </Condition>
     <Action ID="LAGetExt"
             editable="true">
       <input_port name="service_name"
@@ -368,8 +342,6 @@
                   default="/SetExtension"/>
       <input_port name="target_extension"/>
     </Action>
-    <Action ID="ROS2_shutdown"
-            editable="true"/>
     <Action ID="UpSubtract"
             editable="true">
       <input_port name="UP_subtract"

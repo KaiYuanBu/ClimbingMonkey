@@ -163,14 +163,13 @@
   <BehaviorTree ID="DownCycleTimeTest">
     <Sequence>
       <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.1; la_retract:=0.05"/>
-      <SubTree ID="StartingPosition(Modified)"
-               _autoremap="true"/>
       <Repeat num_cycles="1">
         <SubTree ID="ClimbDown"
                  _autoremap="true"/>
       </Repeat>
       <SubTree ID="StartingPosition(Modified)"
                _autoremap="true"/>
+      <ROS2_shutdown/>
     </Sequence>
   </BehaviorTree>
 
@@ -347,6 +346,8 @@
                   default="/SetExtension"/>
       <input_port name="target_extension"/>
     </Action>
+    <Action ID="ROS2_shutdown"
+            editable="true"/>
     <Action ID="UpSubtract"
             editable="true">
       <input_port name="UP_subtract"

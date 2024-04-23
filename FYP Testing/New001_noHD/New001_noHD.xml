@@ -221,7 +221,7 @@
       </Delay>
       <SubTree ID="EndingPosition"
                _autoremap="true"/>
-      <AlwaysSuccess name="AskForHelp"/>
+      <ROS2_shutdown/>
     </Sequence>
   </BehaviorTree>
 
@@ -356,6 +356,8 @@
                   default="/SetExtension"/>
       <input_port name="target_extension"/>
     </Action>
+    <Action ID="ROS2_shutdown"
+            editable="true"/>
     <Action ID="UpSubtract"
             editable="true">
       <input_port name="UP_subtract"
