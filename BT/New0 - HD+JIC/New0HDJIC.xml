@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="ClimbDown">
+    <Fallback>
+      <Sequence>
+        <Sequence name="DOWN1">
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="retract_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        next_pos="550000"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="550000"/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="DOWN2">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        next_pos="550000"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="550000"/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="DOWN3">
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="DOWN4">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="550000"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="550000"/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="DOWN5">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="550000"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="550000"/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="check_lc"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="/SetExtension"
+                            target_extension=""/>
+          </Fallback>
+        </Sequence>
+      </Sequence>
+      <AlwaysSuccess name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="ClimbUp">
+    <Fallback>
+      <Sequence>
+        <Sequence name="UP1">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="550000"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="550000"/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="retract_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="UP2">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="550000"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="550000"/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="UP3">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="UP4">
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="extend_la"
+                            target_extension=""/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        next_pos="550000"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="550000"/>
+          </Fallback>
+        </Sequence>
+        <Sequence name="UP5">
+          <Fallback>
+            <DMKEGetPos node_id="3"
+                        service_name="/get_position"
+                        next_pos="550000"/>
+            <DMKESetPosition node_id="3"
+                             action_name="/set_position"
+                             target_position="550000"/>
+          </Fallback>
+          <Fallback>
+            <DMKEGetPos node_id="2"
+                        service_name="/get_position"
+                        next_pos="0"/>
+            <DMKESetPosition node_id="2"
+                             action_name="/set_position"
+                             target_position="0"/>
+          </Fallback>
+          <Fallback>
+            <LAGetExt service_name="/GetExtension"
+                      target_ext=""/>
+            <LASetExtension action_name="retract_la"
+                            target_extension=""/>
+          </Fallback>
+        </Sequence>
+      </Sequence>
+      <AlwaysSuccess name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="New0HDJIC">
+    <Fallback>
+      <Sequence>
+        <SubTree ID="PowerLossScenario"/>
+        <KeepRunningUntilFailure>
+          <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
+                           climb_steps="{climb_steps}"/>
+        </KeepRunningUntilFailure>
+        <SubTree ID="OpenUC&amp;LC"/>
+        <Repeat num_cycles="{climb_steps}">
+          <SubTree ID="ClimbUp"/>
+        </Repeat>
+        <Fallback>
+          <DMKEGetPos node_id="3"
+                      service_name="check_lc"
+                      next_pos="0"/>
+          <DMKESetPosition node_id="3"
+                           action_name="close_lc"
+                           target_position="0"/>
+        </Fallback>
+        <Delay delay_msec="10000">
+          <Repeat num_cycles="{climb_steps}">
+            <SubTree ID="ClimbDown"
+                     _autoremap="false"/>
+          </Repeat>
+        </Delay>
+        <SubTree ID="OpenUC&amp;LC"/>
+      </Sequence>
+      <AlwaysSuccess name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="OpenUC&amp;LC">
+    <Fallback>
+      <Sequence>
+        <Fallback>
+          <DMKEGetPos node_id="2"
+                      service_name="check_uc"
+                      next_pos=""/>
+          <DMKESetPosition node_id="2"
+                           action_name="open_uc"
+                           target_position=""/>
+        </Fallback>
+        <Fallback>
+          <DMKEGetPos node_id="3"
+                      service_name="check_lc"
+                      next_pos=""/>
+          <DMKESetPosition node_id="3"
+                           action_name="open_lc"
+                           target_position=""/>
+        </Fallback>
+        <Fallback>
+          <LAGetExt service_name="/GetExtension"
+                    target_ext=""/>
+          <LASetExtension action_name="retract_la"
+                          target_extension=""/>
+        </Fallback>
+      </Sequence>
+      <AlwaysSuccess name="AskForHelp"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="PowerLossScenario">
+    <Fallback>
+      <CheckPLS home_climbsteps=""/>
+      <Sequence>
+        <Fallback>
+          <DMKEGetPos node_id="3"
+                      service_name="/get_position"
+                      next_pos="0"/>
+          <DMKESetPosition node_id="3"
+                           action_name="/set_position"
+                           target_position="0"/>
+        </Fallback>
+        <Fallback>
+          <DMKEGetPos node_id="3"
+                      service_name="/get_position"
+                      next_pos="550000"/>
+          <DMKESetPosition node_id="3"
+                           action_name="/set_position"
+                           target_position="550000"/>
+        </Fallback>
+        <Fallback>
+          <LAGetExt service_name="/GetExtension"
+                    target_ext=""/>
+          <LASetExtension action_name="/SetExtension"
+                          target_extension=""/>
+        </Fallback>
+        <Repeat num_cycles="">
+          <SubTree ID="ClimbDown"
+                   _autoremap="false"/>
+        </Repeat>
+        <AlwaysSuccess name="AskForHelp"/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="CheckPLS"
+            editable="true">
+      <output_port name="home_climbsteps"/>
+    </Action>
+    <Action ID="DMKEGetPos"
+            editable="true">
+      <input_port name="node_id"/>
+      <input_port name="service_name"
+                  default="/get_position"/>
+      <input_port name="next_pos"/>
+    </Action>
+    <Action ID="DMKESetPosition"
+            editable="true">
+      <input_port name="node_id"/>
+      <input_port name="action_name"
+                  default="/set_position"/>
+      <input_port name="target_position"/>
+    </Action>
+    <Condition ID="HeightDetection"
+               editable="true">
+      <input_port name="topic_name"/>
+      <output_port name="climb_steps"/>
+    </Condition>
+    <Action ID="LAGetExt"
+            editable="true">
+      <input_port name="service_name"
+                  default="/GetExtension"/>
+      <input_port name="target_ext"/>
+    </Action>
+    <Action ID="LASetExtension"
+            editable="true">
+      <input_port name="action_name"
+                  default="/SetExtension"/>
+      <input_port name="target_extension"/>
+    </Action>
+  </TreeNodesModel>
+
+</root>
