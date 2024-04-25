@@ -18,6 +18,10 @@ x = 0
 n = 0
 y = 0
 
+def write_current_value_to_csv(filename, current_value):
+    with open(filename, mode='a', newline='') as file:  # 'a' for append mode
+        writer = csv.writer(file)
+        writer.writerow([current_value])
 
 def save_value_to_file(number, file_path):
     if not isinstance(number, float):
@@ -268,6 +272,8 @@ class DMKEServers(Node):
     
         prev_pos = instance.read_actual_pos()
         prev_current = instance.read_actual_current()
+        read_speed = instance.read_actual_speed()
+        write_current_value_to_csv('SpeedDataforServoMotors.csv', read_speed)
         # print(f"Position from Motor's Perspective {prev_pos}")
         error_count = 0  # Initialize error count
         feedback_msg = SetPosition.Feedback()
@@ -277,6 +283,8 @@ class DMKEServers(Node):
             try:
                 # Read the actual position
                 actual_pos = instance.read_actual_pos()
+                read_speed = instance.read_actual_speed()
+                write_current_value_to_csv('SpeedDataforServoMotors.csv', read_speed)
 
                 # Read the actual current
                 read_current = instance.read_actual_current()
