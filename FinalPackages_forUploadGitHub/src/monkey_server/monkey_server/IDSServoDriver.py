@@ -383,7 +383,7 @@ def main(args=None):
     # can_id_str = input("Please enter CAN ID: ")
 
     bus = can.ThreadSafeBus(
-        interface='seeedstudio', channel='/dev/ttyUSB3', baudrate=115200, bitrate=500000
+        interface='socketcan', channel='can0', baudrate=115200, bitrate=500000
         # interface='seeedstudio', channel='/dev/ttyUSB1', baudrate=2000000, bitrate=500000
     )
 
@@ -400,7 +400,7 @@ def main(args=None):
     time.sleep(0.5)
 
     print("Extend 0.1m")
-    d1.set_extension(1.09, 10, False)
+    d1.set_extension(0.00, 10, False)
     while d1.is_running:
         print(f"Current Extension: {d1.extension}")
 

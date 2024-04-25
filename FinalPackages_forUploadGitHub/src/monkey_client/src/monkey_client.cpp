@@ -624,17 +624,18 @@ public:
 };
 
 
-class AskForHelp : public AlwaysSuccessNode {
+class ROS2_shutdown : public SyncActionNode {
 public:
-    AskForHelp(const std::string& name)
-        : AlwaysSuccessNode(name) {}
+    ROS2_shutdown(const std::string& name, const NodeConfiguration& config)
+        : SyncActionNode(name, config) {}
 
-    // static PortsList providedPorts()
-    // {
-    //     // return { OutputPort<int>("home_climbsteps")};
-    // }
 
-    BT::NodeStatus tick() override
+    static PortsList providedPorts()
+    {
+        return { };
+    }
+
+    NodeStatus tick() override
     {
         rclcpp::shutdown();
         
@@ -851,6 +852,19 @@ static const char* xml_text = R"(
     </Sequence>
   </BehaviorTree>
 
+  <BehaviorTree ID="DownCycleTimeTest">
+    <Sequence>
+      <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.1; la_retract:=0.05"/>
+      <Repeat num_cycles="1">
+        <SubTree ID="ClimbDown"
+                 _autoremap="true"/>
+      </Repeat>
+      <SubTree ID="StartingPosition_Modified"
+               _autoremap="true"/>
+      <ROS2_shutdown/>
+    </Sequence>
+  </BehaviorTree>
+
   <BehaviorTree ID="EndingPosition">
     <Sequence>
       <Fallback>
@@ -890,43 +904,6 @@ static const char* xml_text = R"(
         </RetryUntilSuccessful>
         <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
-    </Sequence>
-  </BehaviorTree>
-
-  <BehaviorTree ID="LATimeTest">
-    <Sequence>
-      <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.1; la_retract:=0.05"/>
-      <Repeat num_cycles="5">
-        <Delay delay_msec="5000">
-          <Sequence>
-            <Fallback>
-              <RetryUntilSuccessful num_attempts="3">
-                <Fallback>
-                  <LAGetExt service_name="/GetExtension"
-                            target_ext="{la_extend}"/>
-                  <LASetExtension action_name="/SetExtension"
-                                  target_extension="{la_extend}"/>
-                </Fallback>
-              </RetryUntilSuccessful>
-              <AlwaysSuccess name="AskForHelp"/>
-            </Fallback>
-            <Delay delay_msec="5000">
-              <Fallback>
-                <RetryUntilSuccessful num_attempts="3">
-                  <Fallback>
-                    <LAGetExt service_name="/GetExtension"
-                              target_ext="{la_retract}"/>
-                    <LASetExtension action_name="/SetExtension"
-                                    target_extension="{la_retract}"/>
-                  </Fallback>
-                </RetryUntilSuccessful>
-                <AlwaysSuccess name="AskForHelp"/>
-              </Fallback>
-            </Delay>
-          </Sequence>
-        </Delay>
-      </Repeat>
-      <AlwaysSuccess name="AskForHelp"/>
     </Sequence>
   </BehaviorTree>
 
@@ -982,17 +959,17 @@ static const char* xml_text = R"(
     </Fallback>
   </BehaviorTree>
 
-  <BehaviorTree ID="StartingPosition">
+  <BehaviorTree ID="StartingPosition_Modified">
     <Sequence>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="2"
                         service_name="/get_position"
-                        target_pos="{dmke_open}"/>
+                        target_pos="{dmke_close}"/>
             <DMKESetPosition node_id="2"
                              action_name="/set_position"
-                             target_position="{dmke_open}"/>
+                             target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
         <AlwaysSuccess name="AskForHelp"/>
@@ -1061,6 +1038,8 @@ static const char* xml_text = R"(
                   default="/SetExtension"/>
       <input_port name="target_extension"/>
     </Action>
+    <Action ID="ROS2_shutdown"
+            editable="true"/>
     <Action ID="UpSubtract"
             editable="true">
       <input_port name="UP_subtract"
@@ -1093,13 +1072,13 @@ int main(int argc, char **argv)
   
   // factory.registerNodeType<ClimbingSystemBlackboard>("ClimbingSystemBlackboard");
   factory.registerNodeType<CheckPLS>("CheckPLS");
-  factory.registerNodeType<AskForHelp>("AskForHelp");
+  factory.registerNodeType<ROS2_shutdown>("ROS2_shutdown");
 
   // Create the behavior tree using the XML description
   // auto tree = factory.createTreeFromText(xml_text);
 
   factory.registerBehaviorTreeFromText(xml_text);
-  auto tree = factory.createTree("LATimeTest");
+  auto tree = factory.createTree("DownCycleTimeTest");
 
   // Run the behavior tree until it finishes
   tree.tickWhileRunning();

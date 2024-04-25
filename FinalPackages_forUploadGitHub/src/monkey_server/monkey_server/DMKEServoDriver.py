@@ -250,7 +250,7 @@ class DMKEServoDriver:
                 attempts += 1
     
         print(f"Failed to read current position after {max_attempts} attempts.")
-        return None  # Or whatever you want to return in case of failure
+          # Or whatever you want to return in case of failure
 
 
     def set_speed_control_mode(self):

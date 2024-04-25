@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'monkey_main_server = monkey_server.MonkeyMainServer:main',
+            'cylinder_server = monkey_server.CylinderServer:main'
         ],
     },
 )
