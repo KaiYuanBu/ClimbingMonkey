@@ -292,8 +292,8 @@ class DMKEServoDriver:
 
 
     def read_actual_speed(self):
-     attempts = 0
-        while attempts < max_attempts:
+        attempts = 0
+        while attempts < 5:
             try:
                 actual_speed = self.node.sdo[0x6069] # Control Word
                 # actual_speed.raw = 0x00
@@ -310,7 +310,7 @@ class DMKEServoDriver:
                 print("Failed to read current speed of motor, Retrying...")
                 attempts += 1
     
-        print(f"Failed to read current position after {max_attempts} attempts.")
+        print(f"Failed to read current position after {5} attempts.")
         return None
         # Or whatever you want to return in case of failure
 
