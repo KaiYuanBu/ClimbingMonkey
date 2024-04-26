@@ -192,9 +192,9 @@
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <LAGetExt service_name="/GetExtension"
-                      target_ext="{la_retract}"/>
+                      target_ext="0.00"/>
             <LASetExtension action_name="/SetExtension"
-                            target_extension="{la_retract}"/>
+                            target_extension="0.00"/>
           </Fallback>
         </RetryUntilSuccessful>
         <ROS2_shutdown/>
@@ -273,6 +273,7 @@
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
+        <DownSubtract DOWN_subtract="-1"/>
         <Repeat num_cycles="{home_climbcycles}">
           <SubTree ID="ClimbDown"
                    _autoremap="true"/>
