@@ -518,7 +518,7 @@ public:
     if (count >= 20)
       {
         float avrg_val = new_val / 20;
-        int climb_cycles = floor(avrg_val / 0.8); //0.8m is the length of each extension for now!!
+        int climb_cycles = floor(avrg_val / 0.7535); 
         RCLCPP_INFO(node_->get_logger(), "Average center distance : %g m", avrg_val);
         RCLCPP_INFO(node_->get_logger(), "NUMBER OF CYCLES FOR CLIMBING : %d", climb_cycles);
 
