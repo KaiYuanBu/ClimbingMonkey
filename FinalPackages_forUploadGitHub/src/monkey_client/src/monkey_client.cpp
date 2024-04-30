@@ -485,15 +485,11 @@ public:
 
   NodeStatus onTick(const std::shared_ptr<sensor_msgs::msg::Image>& msg) override
   {
-    
-    // int valid_depth_count = 0;
-
     if (count < 20)
     {
       if (!msg)
       {
         RCLCPP_ERROR(node_->get_logger(), "Received null pointer for message.");
-        // count--;
         return NodeStatus::SUCCESS;
       }
 
@@ -505,8 +501,6 @@ public:
       if (std::isnan(depths[centerIdx]))
       {
         RCLCPP_WARN(node_->get_logger(), "NaN value detected in depth data. Ignoring...");
-        // count--;
-        // continue;
         return NodeStatus::SUCCESS;
       }
 
@@ -516,13 +510,9 @@ public:
       RCLCPP_INFO(node_->get_logger(), "Counts : %d ", count);
       new_val = new_val + depths[centerIdx];
       count++;
-      // valid_depth_count++;
-      // RCLCPP_INFO(node_->get_logger(), "Valid Depth Count = %d", valid_depth_count);
-      // Simulate some delay
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
       return NodeStatus::SUCCESS;
       }
-      
     }
     
     if (count >= 20)
@@ -532,18 +522,13 @@ public:
         RCLCPP_INFO(node_->get_logger(), "Average center distance : %g m", avrg_val);
         RCLCPP_INFO(node_->get_logger(), "NUMBER OF CYCLES FOR CLIMBING : %d", climb_cycles);
 
-        // if (climb_cycles == 0)
-        
         save_value_to_file(climb_cycles, "NumofCyclesUP.txt");
         save_value_to_file(climb_cycles, "NumofCyclesDOWN.txt");
         count = 0;  // Reset count for next execution
         new_val = 0;  // Reset new_val for next execution
         setOutput("climb_cycles", climb_cycles);
-        // sensor_msgs::msg::Image->unsubscribe();
         return NodeStatus::FAILURE;
       }
-  
-     // This should never be reached, but in case of some unexpected scenario
     RCLCPP_ERROR(node_->get_logger(), "Unexpected state reached in onTick()");
     return NodeStatus::SUCCESS;
   }
