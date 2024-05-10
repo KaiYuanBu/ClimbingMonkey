@@ -39,6 +39,7 @@ def read_value_from_file(file_path):
 
 ##### ==================== ---------- CYLINDER ----------  ==================== ####
 
+
 class CylinderServers(Node):
     """MonKey Arm cylinder control wrapper for IDSServoDriver."""
 
@@ -50,6 +51,7 @@ class CylinderServers(Node):
             ParameterDescriptor(description='CAN ID of the target driver.'))
         self.declare_parameter('can_channel', '/dev/ttyUSB1',
             ParameterDescriptor(description='Channel of CAN tranceiver.'))
+        # self.declare_parameter('can_baudrate', 2000000,
         self.declare_parameter('can_baudrate', 115200,
             ParameterDescriptor(description='Baudrate of USB communication.'))
         self.declare_parameter('can_bitrate', 500000,
@@ -63,8 +65,10 @@ class CylinderServers(Node):
 
         # Create CAN connection
         self.bus = can.ThreadSafeBus(
-            interface='socketcan', channel='can0', baudrate=baudrate, bitrate=bitrate,
+            # interface='seeedstudio', channel=can_channel, baudrate=baudrate, bitrate=bitrate
+            interface='socketcan', channel='can0', baudrate=baudrate, bitrate=500000,
         )
+
         time.sleep(0.5)
 
         # Initialize driver
@@ -80,12 +84,14 @@ class CylinderServers(Node):
 
         # Declare Service server
         self.service_server = self.create_service(GetExtension, 'GetExtension', self.get_extension_callback)
+        # self.get_logger().info('GetExtension Server is ready!')
 
         # Start message
         self.get_logger().info(">>>>>>>>>> CYLINDER SERVERS INITIALIZED <<<<<<<<<<")
 
     def action_callback(self, goal_handle, filepath='saved_extension.txt'):
         """Callback for set extension action."""
+        
         target_extension = goal_handle.request.target_extension
 
         if target_extension < 0 or target_extension > 1.2:
@@ -111,10 +117,13 @@ class CylinderServers(Node):
             if abs(target_extension - data_from_file) <= 0.005:
                 cylinder_condition = True
 
+                # checkNoS()
             else:
                 cylinder_condition = False
         
+            # Create the result message
             result = SetExtension.Result()
+
             result.success_ext = cylinder_condition
 
             if result.success_ext:
@@ -129,7 +138,9 @@ class CylinderServers(Node):
 
     
     def get_extension_callback(self, request, response):
+        # node_id = request.node_id.to_bytes(1, byteorder='little')
         response.extensiongot = read_value_from_file('saved_extension.txt')
+       
         return response
 
     def real_ext(self, target_ext, file_path):

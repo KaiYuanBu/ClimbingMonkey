@@ -485,11 +485,15 @@ public:
 
   NodeStatus onTick(const std::shared_ptr<sensor_msgs::msg::Image>& msg) override
   {
+    
+    // int valid_depth_count = 0;
+
     if (count < 20)
     {
       if (!msg)
       {
         RCLCPP_ERROR(node_->get_logger(), "Received null pointer for message.");
+        // count--;
         return NodeStatus::SUCCESS;
       }
 
@@ -501,6 +505,8 @@ public:
       if (std::isnan(depths[centerIdx]))
       {
         RCLCPP_WARN(node_->get_logger(), "NaN value detected in depth data. Ignoring...");
+        // count--;
+        // continue;
         return NodeStatus::SUCCESS;
       }
 
@@ -510,25 +516,34 @@ public:
       RCLCPP_INFO(node_->get_logger(), "Counts : %d ", count);
       new_val = new_val + depths[centerIdx];
       count++;
+      // valid_depth_count++;
+      // RCLCPP_INFO(node_->get_logger(), "Valid Depth Count = %d", valid_depth_count);
+      // Simulate some delay
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
       return NodeStatus::SUCCESS;
       }
+      
     }
     
     if (count >= 20)
       {
         float avrg_val = new_val / 20;
-        int climb_cycles = floor(avrg_val / 0.7535); 
+        int climb_cycles = floor(avrg_val / 0.8); //0.8m is the length of each extension for now!!
         RCLCPP_INFO(node_->get_logger(), "Average center distance : %g m", avrg_val);
         RCLCPP_INFO(node_->get_logger(), "NUMBER OF CYCLES FOR CLIMBING : %d", climb_cycles);
 
+        // if (climb_cycles == 0)
+        
         save_value_to_file(climb_cycles, "NumofCyclesUP.txt");
         save_value_to_file(climb_cycles, "NumofCyclesDOWN.txt");
         count = 0;  // Reset count for next execution
         new_val = 0;  // Reset new_val for next execution
         setOutput("climb_cycles", climb_cycles);
+        // sensor_msgs::msg::Image->unsubscribe();
         return NodeStatus::FAILURE;
       }
+  
+     // This should never be reached, but in case of some unexpected scenario
     RCLCPP_ERROR(node_->get_logger(), "Unexpected state reached in onTick()");
     return NodeStatus::SUCCESS;
   }
@@ -690,7 +705,7 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -701,7 +716,7 @@ static const char* xml_text = R"(
                             target_extension="{la_extend}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -714,7 +729,7 @@ static const char* xml_text = R"(
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -727,7 +742,7 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -738,7 +753,7 @@ static const char* xml_text = R"(
                             target_extension="{la_retract}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -751,7 +766,7 @@ static const char* xml_text = R"(
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <DownSubtract DOWN_subtract="-1"/>
     </Sequence>
@@ -770,7 +785,7 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -781,7 +796,7 @@ static const char* xml_text = R"(
                             target_extension="{la_extend}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -794,7 +809,7 @@ static const char* xml_text = R"(
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -807,7 +822,7 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -818,7 +833,7 @@ static const char* xml_text = R"(
                             target_extension="{la_retract}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -831,7 +846,7 @@ static const char* xml_text = R"(
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <UpSubtract UP_subtract="-1"/>
     </Sequence>
@@ -850,7 +865,7 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
@@ -863,48 +878,19 @@ static const char* xml_text = R"(
                              target_position="{dmke_open}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <LAGetExt service_name="/GetExtension"
-                      target_ext="0.00"/>
+                      target_ext="{la_retract}"/>
             <LASetExtension action_name="/SetExtension"
-                            target_extension="0.00"/>
+                            target_extension="{la_retract}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <ROS2_shutdown/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Fallback>
-    </Sequence>
-  </BehaviorTree>
-
-  <BehaviorTree ID="New001">
-    <Sequence>
-      <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.1; la_retract:=0.05"/>
-      <SubTree ID="PowerLossScenario"
-               _autoremap="true"/>
-      <Inverter>
-        <KeepRunningUntilFailure>
-          <HeightDetection topic_name="/zed/zed_node/depth/depth_registered"
-                           climb_cycles="{climb_cycles}"/>
-        </KeepRunningUntilFailure>
-      </Inverter>
-      <SubTree ID="StartingPosition"
-               _autoremap="true"/>
-      <Repeat num_cycles="{climb_cycles}">
-        <SubTree ID="ClimbUp"
-                 _autoremap="true"/>
-      </Repeat>
-      <Delay delay_msec="10000">
-        <Repeat num_cycles="{climb_cycles}">
-          <SubTree ID="ClimbDown"
-                   _autoremap="true"/>
-        </Repeat>
-      </Delay>
-      <SubTree ID="EndingPosition"
-               _autoremap="true"/>
-      <ROS2_shutdown/>
     </Sequence>
   </BehaviorTree>
 
@@ -950,29 +936,36 @@ static const char* xml_text = R"(
                              target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
-        <DownSubtract DOWN_subtract="-1"/>
         <Repeat num_cycles="{home_climbcycles}">
           <SubTree ID="ClimbDown"
-                   _autoremap="true"/>
+                   _autoremap="false"/>
         </Repeat>
-        <SubTree ID="EndingPosition"
-                 _autoremap="true"/>
-        <ROS2_shutdown/>
+        <SubTree ID="EndingPosition"/>
+        <AlwaysSuccess name="AskForHelp"/>
       </Sequence>
     </Fallback>
   </BehaviorTree>
 
-  <BehaviorTree ID="StartingPosition">
+  <BehaviorTree ID="UpEndPos">
+    <Sequence>
+      <Script code="dmke_open:=550000; dmke_close:=10000; la_extend:=1.1; la_retract:=0.05"/>
+      <SubTree ID="UpEndPos_subtree"
+               _autoremap="true"/>
+      <ROS2_shutdown/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="UpEndPos_subtree">
     <Sequence>
       <Fallback>
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <DMKEGetPos node_id="2"
                         service_name="/get_position"
-                        target_pos="{dmke_open}"/>
+                        target_pos="{dmke_close}"/>
             <DMKESetPosition node_id="2"
                              action_name="/set_position"
-                             target_position="{dmke_open}"/>
+                             target_position="{dmke_close}"/>
           </Fallback>
         </RetryUntilSuccessful>
         <ROS2_shutdown/>
@@ -994,9 +987,9 @@ static const char* xml_text = R"(
         <RetryUntilSuccessful num_attempts="3">
           <Fallback>
             <LAGetExt service_name="/GetExtension"
-                      target_ext="{la_retract}"/>
+                      target_ext="0.00"/>
             <LASetExtension action_name="/SetExtension"
-                            target_extension="{la_retract}"/>
+                            target_extension="0.00"/>
           </Fallback>
         </RetryUntilSuccessful>
         <ROS2_shutdown/>
@@ -1029,11 +1022,6 @@ static const char* xml_text = R"(
       <input_port name="DOWN_subtract"
                   default="-1"/>
     </Action>
-    <Condition ID="HeightDetection"
-               editable="true">
-      <input_port name="topic_name"/>
-      <output_port name="climb_cycles"/>
-    </Condition>
     <Action ID="LAGetExt"
             editable="true">
       <input_port name="service_name"
@@ -1086,7 +1074,7 @@ int main(int argc, char **argv)
   // auto tree = factory.createTreeFromText(xml_text);
 
   factory.registerBehaviorTreeFromText(xml_text);
-  auto tree = factory.createTree("New001");
+  auto tree = factory.createTree("UpEndPos");
 
   // Run the behavior tree until it finishes
   tree.tickWhileRunning();

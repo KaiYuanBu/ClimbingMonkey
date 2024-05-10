@@ -148,13 +148,13 @@ class DMKEServers(Node):
 
         print("Setting Parameters for position control mode")
         self.uc.set_profile_velocity(2500)
-        self.uc.set_profile_acceleration(15000)
-        self.uc.set_profile_deceleration(15000)
+        self.uc.set_profile_acceleration(20000)
+        self.uc.set_profile_deceleration(20000)
         time.sleep(0.5)
 
         self.lc.set_profile_velocity(2500)
-        self.lc.set_profile_acceleration(15000)
-        self.lc.set_profile_deceleration(15000)
+        self.lc.set_profile_acceleration(20000)
+        self.lc.set_profile_deceleration(20000)
         time.sleep(0.5)
             
 
@@ -258,7 +258,7 @@ class DMKEServers(Node):
         return real_target
     
     
-    def monitor_position(self, goal_handle, instance, filepath, threshold=50, interval=0.05):
+    def monitor_position(self, goal_handle, instance, filepath, threshold=50, interval=0.02):
         """
         Monitors the position of a servo motor continuously until the change
         in position is less than the specified threshold.
@@ -273,8 +273,8 @@ class DMKEServers(Node):
     
         prev_pos = instance.read_actual_pos()
         prev_current = instance.read_actual_current()
-        read_speed = instance.read_actual_speed()
-        write_current_value_to_csv("SpeedData.csv", read_speed)
+        # read_speed = instance.read_actual_speed()
+        # write_current_value_to_csv("SpeedData.csv", read_speed)
         # print(f"Position from Motor's Perspective {prev_pos}")
         error_count = 0  # Initialize error count
         feedback_msg = SetPosition.Feedback()
@@ -289,8 +289,8 @@ class DMKEServers(Node):
                 read_current = instance.read_actual_current()
                 print(f"Actual Current: {read_current}")
 
-                read_speed = instance.read_actual_speed()
-                write_current_value_to_csv("SpeedData.csv", read_speed)
+                # read_speed = instance.read_actual_speed()
+                # write_current_value_to_csv("SpeedData.csv", read_speed)
 
                 abs_read_current = abs(read_current)
                 abs_prev_current = abs(prev_current)
@@ -374,8 +374,6 @@ class DMKEServers(Node):
                 else:
                     # self.monitor_position(self, goal_handle, instance, filepath, threshold=3, interval=0.05)
                     continue
-
-
 
 
 
