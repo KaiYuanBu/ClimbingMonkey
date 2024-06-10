@@ -1,4 +1,0 @@
-int32 ucid
-int32 lcid
----
-bool motor_switch
