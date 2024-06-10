@@ -1,6 +1,0 @@
-int32 node_id
-int32 target_position
----
-bool success_pos
----
-int32 current_position
